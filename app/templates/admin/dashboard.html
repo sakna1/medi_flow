@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mediflow Dashboard</title>
+
+  <!-- CSS -->
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/admindashboard.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/doctordashboard.css') }}">
+  
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Background Blur Layer -->
+  <div class="bg-blur"></div>
+
+  <!-- Page Wrapper START -->
+  <div class="page-wrapper">
+
+    <!-- Top Info Bar -->
+    <div class="top-info-bar">
+      <div class="top-bar-content">
+        <div class="logo">
+          <img src="../static/img/logonew.png" alt="Mediflow Logo">
+        </div>
+        <div class="info-row">
+          <div class="info-item">
+            <i class="bi bi-telephone-fill"></i>
+            <div><strong>Emergency</strong><br>(+94) 11 275 5623</div>
+          </div>
+          <div class="info-item">
+            <i class="bi bi-clock-fill"></i>
+            <div><strong>Work Hours</strong><br>06:30 AM - 2:00 PM (Weekdays)</div>
+          </div>
+          <div class="info-item">
+            <i class="bi bi-geo-alt-fill"></i>
+            <div><strong>Location</strong><br>Maharagama</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Bar -->
+   <nav class="navbar">
+      <ul class="navbar-nav">
+        <li><a href="{{ url_for('nurse.dashboard')}}">Home</a></li>              
+        <li><a href="{{ url_for('nurse.editprofile')}}">Patient Profile</a></li>
+        <div class="d-flex align-items-center text-white hello-patient">
+          <div id="popupContainer">
+      <a href="#" id="openFormBtn">Hello Nurse {{ doctor_name }} </a>
+      <div id="popupBox" class="popup-box">
+        <h3>Account</h3>
+        <form>          
+          <div><label><a href="{{ url_for('auth.logout')}}">Logout</a></label></div>
+        </form>
+      </div>    
+          <i class="bi bi-person-circle fs-5"></i>
+        </div>
+      </ul>    
+    </nav>
+     <div id="popupOverlay"></div>
+
+<main class="dashboard-container">
+
+  <!-- Filters and Actions -->
+  <div class="filters">
+    <select>
+      <option>Dr. Ravi</option>
+      <option>Dr. Anil</option>
+    </select>
+
+    <select>
+      <option>Room 01</option>
+      <option>Room 02</option>
+    </select>
+
+    <input type="date" value="2025-03-05">
+    <span>to</span>
+    <input type="date" value="2025-12-05">
+
+    <button class="generate-btn">Generate Report</button>
+  </div>
+
+  <!-- Action Cards -->
+  <div class="container">
+      <div class="cards">
+        <a href="{{ url_for('admin.register_user') }}" class="card-link">
+          <div class="card">
+            <div class="card-icon"><i class="bi bi-calendar-event"></i></div>
+            <h3>New Staff Registration</h3>              
+          </div>
+        </a>
+        <div class="card">
+          <div class="card-icon"><i class="bi bi-list-task"></i></div>
+          <h3>Ongoing Treatment</h3>          
+          <p>05</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
+          <h3>New Patients Today</h3>
+          <p>05</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
+          <h3>Appoinments Today</h3>
+          <p>05</p>
+        </div>
+      </div>   
+    </div>
+
+  <!-- Charts Section -->
+  <div class="charts">
+    <div class="chart-box"> <!-- You can replace with Chart.js later -->
+      <h3>Patient Count per Clinic</h3>
+      <canvas id="clinicChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <h3>Daily Patient Flow</h3>
+      <canvas id="flowChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <h3>Treatment Status Distribution</h3>
+      <canvas id="statusChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Detailed Report Table -->
+  <section class="report-section">
+    <div class="report-header">
+      <h3>Detailed Report</h3>
+      <div class="export-icons">
+        <button>🖨️ Print</button>
+        <button>📄 PDF</button>
+        <button>📊 Excel</button>
+      </div>
+    </div>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>Patient Name</th>
+          <th>NIC/IOR Code</th>
+          <th>Clinic</th>
+          <th>Assigned Doctor</th>
+          <th>Treatment Status</th>
+          <th>Visit Date</th>
+          <th>Next Appointment</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Arun Silva</td>
+          <td>3724367990</td>
+          <td>OPD</td>
+          <td>Dr. Ravi</td>
+          <td>Ongoing</td>
+          <td>Apr 1, 2024</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td>Basani Fernando</td>
+          <td>87245324C</td>
+          <td>Oncology</td>
+          <td>Dr. Ravi</td>
+          <td>Completed</td>
+          <td>Apr 1, 2024</td>
+          <td>-</td>
+        </tr>
+        <!-- Add more rows as needed -->
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+    
+
+  </div> <!-- END Page Wrapper -->
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-left">
+        &copy; 2025 Mediflow. All rights reserved.
+      </div>
+      <div class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>       
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/contact.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/Search.js') }}"></script>
+
+</body>
+</html>

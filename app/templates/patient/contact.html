@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Us</title>
+  <link rel="stylesheet" href="CSS/contact.css" />
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+
+  <div class="flex items-center min-h-screen">
+    <div class="container mx-auto">
+      <div class="form-wrapper relative max-w-xl mx-auto my-10 bg-white p-5 rounded-md shadow-sm">
+        
+        <!-- Close Button -->
+        <a href="chatgpttest.html" 
+           class="absolute top-4 right-4 text-gray-600 hover:text-red-600 text-3xl font-bold cursor-pointer" 
+           title="Close & Go Home">&times;</a>
+        
+        <div class="text-center">
+          <h1 class="form-title my-3 text-3xl font-semibold text-gray-700 dark:text-gray-200">
+            Contact Us
+          </h1>
+          <p class="text-gray-400 dark:text-gray-400">
+            Fill up the form below to send us a message.
+          </p>
+        </div>
+        <div class="m-7">
+          <form action="https://api.web3forms.com/submit" method="POST" id="form">
+            <input type="hidden" name="access_key" value="252cde03-de20-4dae-bda6-a87bfe16d542" />
+            <input type="hidden" name="subject" value="New Submission from Web3Forms" />
+            <input type="checkbox" name="botcheck" style="display: none;" />
+
+            <div class="flex flex-wrap mb-6 -mx-2">
+              <div class="w-full md:w-1/2 px-2 mb-4 md:mb-0">
+                <label for="fname" class="label">First Name</label>
+                <input type="text" name="name" id="first_name" placeholder="John" required class="input" />
+              </div>
+              <div class="w-full md:w-1/2 px-2">
+                <label for="lname" class="label">Last Name</label>
+                <input type="text" name="last_name" id="lname" placeholder="Doe" required class="input" />
+              </div>
+            </div>
+
+            <div class="flex flex-wrap mb-6 -mx-2">
+              <div class="w-full md:w-1/2 px-2 mb-4 md:mb-0">
+                <label for="email" class="label">Email Address</label>
+                <input type="email" name="email" id="email" placeholder="you@company.com" required class="input" />
+              </div>
+              <div class="w-full md:w-1/2 px-2">
+                <label for="phone" class="label">Phone Number</label>
+                <input type="text" name="phone" id="phone" placeholder="+1 (555) 1234-567" required class="input" />
+              </div>
+            </div>
+
+            <div class="mb-6">
+              <label for="message" class="label">Your Message</label>
+              <textarea rows="5" name="message" id="message" placeholder="Your Message" required class="input"></textarea>
+            </div>
+
+            <div class="mb-6">
+              <button type="submit" class="submit-button">
+                Send Message
+              </button>
+            </div>
+            <p class="text-base text-center text-gray-400" id="result"></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/contact.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/Search.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.logo {
+  width: 150px;
+  height: auto;
+}
+
+.hero-text h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.hero-text p {
+  font-size: 1rem;
+  color: #333;
+}
+
+.hero-img img {
+  max-width: 100%;
+  height: auto;
+}
+
+.services-section {
+  background-color: #005eb8;
+}
+
+.service-card h5 {
+  font-weight: bold;
+}
+
+#services .card img {
+  max-width: 100%;
+  height: 200px;
+  width: 300px;
+  object-fit: cover;
+}
+
+#about-doctors h2 {
+  font-size: 2rem;
+}
+
+#about-doctors .fst-italic {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+#about-doctors img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Footer */
+.footer {
+  background: #152238;
+  color: #fff;
+  padding: 20px 5%;
+  font-size: 14px;
+}
+
+.footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.footer-left {
+  flex: 1;
+  min-width: 100px;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.footer-links a {
+  color: #fff;
+  text-decoration: none;
+  position: relative;
+  white-space: nowrap;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
+
+.footer-links a:not(:last-child)::after {
+  content: "|";
+  margin-left: 15px;
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .footer-left {
+    margin-bottom: 10px;
+  }
+
+  .footer-links {
+    justify-content: center;
+  }
+}
+
+/* Responsive Fixes */
+@media (max-width: 768px) {
+  .hero-text h1 {
+    font-size: 2rem;
+  }
+  .navbar-nav {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+
+

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Staff Registration Form</title>
+  <link rel="stylesheet" href="../static/css/register.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="../static/img/logonew.png" alt="MEDIFLOW Logo" class="logo" />
+      <div class="header-text">
+        <h2>Staff Registration Form</h2>
+        <p>Maharagama Apeksha Hospital</p>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin.register_user') }}" class="form">
+      <div class="form-group">
+        <label for="role">Role</label>
+        <select id="role" name="role" required>
+          <option value="Patient">Patient</option>
+          <option value="Doctor">Doctor</option>
+          <option value="Nurse">Nurse</option>
+          <option value="Admin">Admin</option>          
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="username">UserName</label>
+        <input type="text" id="username" name="username" required />
+      </div>
+
+      <div class="form-group">
+        <label>Name</label>
+        <div class="multi-input">
+          <input type="text" id="first_name" name="first_name" placeholder="First Name" required />
+          <input type="text" id="last_name" name="last_name" placeholder="Last Name" required />
+        </div>
+      </div>
+
+      <div class="form-group gender">
+        <label>Gender</label>
+        <div class="gender-options">
+          <label><input type="radio" name="gender" value="Male" required /> Male</label>
+          <label><input type="radio" name="gender" value="Female" /> Female</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone</label>
+        <input type="text" id="phone" name="phone" />
+      </div>
+
+      <div class="form-group">
+        <label>Emergency Contact Name</label>
+        <div class="multi-input">
+          <input type="text" id="emergency_contact_first_name" name="emergency_contact_first_name" placeholder="First Name" />
+          <input type="text" id="emergency_contact_last_name" name="emergency_contact_last_name" placeholder="Last Name" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="emergency_contact_phone">Emergency Contact Phone</label>
+        <input type="text" id="emergency_contact_phone" name="emergency_contact_phone" />
+      </div>
+
+      <div class="form-group">
+        <label for="date_of_birth">Date of Birth</label>
+        <input type="date" id="date_of_birth" name="date_of_birth" />
+      </div>
+
+      <div class="form-group">
+        <label for="marital_status">Marital Status</label>
+        <input type="text" id="marital_status" name="marital_status" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required />
+      </div>
+
+      <div class="form-group">
+        <label for="address">Address</label>
+        <input type="text" id="address" name="address" />
+      </div>
+
+      <div class="form-group">
+        <label for="nic">NIC</label>
+        <input type="text" id="nic" name="nic" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required />
+      </div>
+
+      <div class="form-group">
+        <label for="specialization">Specialization</label>
+        <input type="text" id="specialization" name="specialization" />
+      </div>
+
+      <button type="submit" class="save-btn">Save</button>
+    </form>
+  </div>
+</body>
+</html>

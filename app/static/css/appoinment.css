@@ -1,0 +1,178 @@
+/* Appointments */
+.appointments-header {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.appointments-header h2 {
+  color: #2c3b48;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px 10px;
+}
+
+.search-bar i {
+  color: #aaa;
+}
+
+.search-bar input {
+  border: none;
+  outline: none;
+  padding-left: 8px;
+}
+
+.table-container {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+table th, table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+table th {
+  background-color: #e9f1f7;
+  color: #2c3b48;
+  font-weight: bold;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  font-size: 14px;
+  color: #2c3b48;
+}
+
+.appointments-section {
+  padding: 40px 3%;
+  margin: 40px auto;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+  background-color: #fff;
+  width: 95vw;
+  max-width: none;
+}
+
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.search-group {
+  flex: 1;
+  position: relative;
+  max-width: 300px;
+  margin-top: 20px;
+}
+
+.search-group input[type="text"] {
+  width: 100%;
+  padding: 10px 35px 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border 0.3s;
+}
+
+.search-group input:focus {
+  border-color: #3874cb;
+  outline: none;
+}
+
+.search-group i.fa-search {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+}
+
+.filters-bar input[type="date"],
+.filters-bar select {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: #f9f9f9;
+  transition: border 0.3s;
+}
+
+.filters-bar input[type="date"]:focus,
+.filters-bar select:focus {
+  border-color: #3874cb;
+  outline: none;
+}
+
+.filters-bar label {
+  font-size: 14px;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+  .filters-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .search-group {
+    width: 100%;
+  }
+}
+
+.back-btn {
+  position: relative;
+  display: block;
+  width: 180px;
+  padding: 10px;
+  background-color: #2C3B48;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+  text-align: center;
+  margin: 20px 40px 0 auto;
+  transition: background-color 0.3s ease;
+  margin-bottom: 20px;
+}
+
+.back-btn:hover {
+  background-color: #1a2a39;
+}

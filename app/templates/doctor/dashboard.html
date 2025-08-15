@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mediflow Dashboard</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/doctordashboard.css') }}">
+  
+  
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Background Blur Layer -->
+  <div class="bg-blur"></div>
+
+  <!-- Page Wrapper START -->
+  <div class="page-wrapper">
+
+    <!-- Top Info Bar -->
+    <div class="top-info-bar">
+      <div class="top-bar-content">
+        <div class="logo">
+          <img src="../static/img/logonew.png" alt="Mediflow Logo">
+        </div>
+        <div class="info-row">
+          <div class="info-item">
+            <i class="bi bi-telephone-fill"></i>
+            <div><strong>Emergency</strong><br>(+94) 11 275 5623</div>
+          </div>
+          <div class="info-item">
+            <i class="bi bi-clock-fill"></i>
+            <div><strong>Work Hours</strong><br>06:30 AM - 2:00 PM (Weekdays)</div>
+          </div>
+          <div class="info-item">
+            <i class="bi bi-geo-alt-fill"></i>
+            <div><strong>Location</strong><br>Maharagama</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Bar -->
+  <nav class="navbar">
+      <ul class="navbar-nav">
+        <li><a href="{{ url_for('doctor.dashboard')}}">Home</a></li>  
+        <li><a href="{{ url_for('doctor.appoinments')}}">Appointments</a></li>      
+        <li><a href="{{ url_for('doctor.editprofile')}}">Patient Profile</a></li>
+        <div class="d-flex align-items-center text-white hello-patient">
+          <div id="popupContainer">
+      <a href="#" id="openFormBtn">Hello Doctor {{ doctor_name }} </a>
+      <div id="popupBox" class="popup-box">
+        <h3>Account</h3>
+        <form>          
+          <div><label><a href="{{ url_for('auth.logout')}}">Logout</a></label></div>
+        </form>
+      </div>    
+          <i class="bi bi-person-circle fs-5"></i>
+        </div>
+      </ul>    
+    </nav>
+     <div id="popupOverlay"></div>
+
+
+    <!-- Hero Text -->
+    <div class="hero-wrapper">
+      <div class="line line1">HOPE. HEALING. HEALTH.</div>
+      <div class="line line2">Leading the way in medical Excellence</div>
+    </div>
+
+    <!-- Cards Section -->
+    <div class="container">
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon"><i class="bi bi-calendar-event"></i></div>
+          <h3>Today's Appointment</h3>
+          <p>08</p>        
+        </div>
+        <div class="card">
+          <div class="card-icon"><i class="bi bi-list-task"></i></div>
+          <h3>Next Appointment</h3>
+          <p>Patient Id - P001</p>
+          <p>Time - 08.00 - 08.30</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
+          <h3>Completed Appointments</h3>
+          <p>05</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
+          <h3>Hospital Updates</h3>
+          <p>Radiology Unit closed on July 5th</p>
+        </div>
+      </div>   
+    </div>
+
+<div class="schedule-todo-section">
+  <div class="schedule-card">
+    <h3>🗓️ Today’s Schedule</h3>
+    <ul>
+      <li><strong>08:00 AM</strong> – Patient P001 <span class="tag">Check-up</span></li>
+      <li><strong>09:00 AM</strong> – Patient P002 <span class="tag">Follow-up</span></li>
+      <li><strong>10:30 AM</strong> – Patient P003 <span class="tag">Consultation</span></li>
+      <li><strong>01:00 PM</strong> – Patient P004 <span class="tag">Reports</span></li>
+    </ul>
+  </div>
+
+  <div class="todo-card">
+    <h3>✅ Doctor’s To-Do List</h3>
+    <ul id="todo-list">
+      <li><input type="checkbox" checked> Call P001’s family</li>
+      <li><input type="checkbox" checked> Approve P003 lab results</li>
+      <li><input type="checkbox"> View</li>
+    </ul>
+    <div class="task-input">
+      <input type="text" id="new-task" placeholder="New Task...">
+      <button onclick="addTask()">Add</button>
+    </div>
+  </div>
+</div>
+
+    
+
+  </div> <!-- END Page Wrapper -->
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-left">
+        &copy; 2025 Mediflow. All rights reserved.
+      </div>
+      <div class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>       
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->  
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/contact.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/Search.js') }}"></script>
+
+</body>
+</html>
