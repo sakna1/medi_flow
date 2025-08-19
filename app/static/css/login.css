@@ -104,6 +104,14 @@ button:hover {
   margin-bottom: 5px; 
  
 }
+.flash-message {
+  background-color: #e74c3c; /* red for errors */
+  color: #fff;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  text-align: center;
+}
 
 
 

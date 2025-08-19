@@ -46,11 +46,11 @@
     <!-- Navigation Bar -->
    <nav class="navbar">
       <ul class="navbar-nav">
-        <li><a href="{{ url_for('nurse.dashboard')}}">Home</a></li>              
-        <li><a href="{{ url_for('nurse.editprofile')}}">Patient Profile</a></li>
+        <li><a href="{{ url_for('admin.dashboard')}}">Home</a></li>              
+        <li><a href="{{ url_for('admin.editprofile')}}">Manage Profile</a></li>
         <div class="d-flex align-items-center text-white hello-patient">
           <div id="popupContainer">
-      <a href="#" id="openFormBtn">Hello Nurse {{ doctor_name }} </a>
+      <a href="#" id="openFormBtn">Hello Admin {{ admin_name }} </a>
       <div id="popupBox" class="popup-box">
         <h3>Account</h3>
         <form>          

@@ -39,7 +39,8 @@ def create_admin_user():
 @admin.route('/admin/dashboard')
 @login_required
 def dashboard():
-    return render_template('admin/dashboard.html')
+    admin_name = current_user.username
+    return render_template('admin/dashboard.html',admin_name=admin_name)
 
 @admin.route('/admin/register', methods=['GET', 'POST'])
 @login_required
@@ -93,4 +94,5 @@ def register_user():
 @admin.route('/admin/editprofile')
 @login_required
 def editprofile():
-    return render_template('admin/editprofile.html')
+    admin_name = current_user.username
+    return render_template('admin/editprofile.html',admin_name=admin_name)

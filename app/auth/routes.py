@@ -17,11 +17,13 @@ def login():
         password = request.form['password']
         user = User.query.filter((User.username == identifier) | (User.email == identifier)).first()
 
-        if user and user.check_password(password):
-            login_user(user)
-            return redirect(url_for(f"{user.role.lower()}.dashboard"))
-
-        flash("Invalid login credentials.")
+        if not user:
+         flash("User not found. Please check your username or email.")
+        elif not user.check_password(password):
+         flash("Wrong password, try again.")
+        else:
+         login_user(user)           
+         return redirect(url_for(f"{user.role.lower()}.dashboard"))
     return render_template('login.html')
 
 @auth.route('/logout')
