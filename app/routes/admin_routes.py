@@ -49,13 +49,13 @@ def register_user():
         return "Access denied", 403
 
     if request.method == 'POST':
-        if request.form['role'] == 'patient':
+        if request.form['role'].lower() == 'patient':
             user = Patient(
                 username=request.form['username'],
                 email=request.form['email'],
-                full_name=request.form['full_name'],
-                gender=request.form['gender'],
-                role=request.form['role']
+                first_name=request.form['first_name'],
+                last_name=request.form['last_name'],
+                gender=request.form['gender'],                
                 )
         else:
             user = User(
@@ -76,16 +76,16 @@ def register_user():
                 )
         user.set_password(request.form['password'])
 
-        if user.role == 'doctor':
+        if request.form['role'].lower() == 'doctor':
             user.specialization = request.form['specialization']
-        elif user.role == 'patient':
+        elif request.form['role'].lower() == 'patient':
             user.address = request.form['address']
-            user.disease = request.form['disease']
+            user.disease = request.form['disease'] if 'disease' in request.form else ''
             user.phone = request.form['phone']
 
         db.session.add(user)
         db.session.commit()
-        flash(f"{user.role.capitalize()} registered successfully.")
+        flash("registered successfully.")
         return redirect(url_for('admin.dashboard'))
 
     return render_template('register.html')

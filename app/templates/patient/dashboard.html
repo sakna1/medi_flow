@@ -54,7 +54,7 @@
       <li><a href="{{ url_for('patient.faqpage')}}">FAQ</a></li>
       <li><a href="{{ url_for('patient.notification')}}">Notifications</a></li>
       <div class="d-flex align-items-center text-white hello-patient">
-  <span class="me-2">Hello Patient 01</span>
+  <span class="me-2">Hello {{ user }}</span>
   <i class="bi bi-person-circle fs-5"></i>
 </div>
     </ul>    
@@ -86,10 +86,11 @@
         <h3>Next Appointment Date</h3>
         <p>August 15, 2024</p>
       </div>
-      <div class="card">
-        <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
-        <h3>Hospital Updates</h3>
-        <p>Radiology Unit closed on July 5th</p>
+      <div class="card">          
+        <div class="qr-container">
+       <h3><span class="qr-title">QR Code</span></h3>
+      <img src="{{ url_for('patient.qr_code') }}" alt="Patient QR Code" class="qr-img" />
+      </div>
       </div>
     </div>
     <!-- Slideshow -->

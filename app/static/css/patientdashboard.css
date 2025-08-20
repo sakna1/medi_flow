@@ -224,6 +224,24 @@ body {
   transition: 0.3s ease;
 }
 
+.qr-container {
+  display: flex;
+  align-items: center; /* vertically center text & image */
+  gap: 10px; /* spacing between text and QR image */
+}
+
+.qr-title {
+  margin: 0 0 10px 0;
+  color: #2b3a60;
+  font-size: 18px;
+}
+
+.qr-img {
+  width: 120px;  /* adjust size as needed */
+  height: 120px;
+}
+
+
 /* Slideshow */
 .slideshow-container {
   margin: 50px 0;

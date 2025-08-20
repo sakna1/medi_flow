@@ -1,6 +1,8 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_required, login_user
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
+from flask_login import login_required, login_user, current_user
 from app.models.patient import Patient
+import qrcode
+import io
 
 patient = Blueprint('patient', __name__)
 
@@ -21,7 +23,9 @@ def user_login():
 @patient.route('/patient/dashboard')
 @login_required
 def dashboard():
-    return render_template('patient/dashboard.html')
+    patient_id = Patient.query.filter((Patient.id == current_user.id)).first()
+    patient_name = patient_id.first_name if patient_id else ''
+    return render_template('patient/dashboard.html', user=patient_name)
 
 @patient.route('/patient/appoinments')
 @login_required
@@ -42,5 +46,27 @@ def faqpage():
 @login_required
 def notification():
     return render_template('patient/notification.html')
+
+@patient.route('/patient/dashboard/qr')
+@login_required
+def qr_code():
+    qr_data = current_user.username
+    # Generate QR code
+    qr = qrcode.QRCode(
+        version=1,
+        box_size=5,
+        border=3
+    )
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    # Save to memory buffer
+    buffer = io.BytesIO()
+    img.save(buffer, 'PNG')
+    buffer.seek(0)
+
+    return send_file(buffer, mimetype='image/png')
     
     
