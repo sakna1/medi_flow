@@ -7,6 +7,7 @@
 
   <!-- CSS -->
  <link rel="stylesheet" href="{{ url_for('static', filename='css/patientdashboard.css') }}">
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/doctordashboard.css') }}">
   
   <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
@@ -48,17 +49,25 @@
 
   <!-- Navigation Bar -->
   <nav class="navbar">
-    <ul class="navbar-nav">
-      <li><a href="{{ url_for('patient.dashboard')}}">Home</a></li>  
-      <li><a href="{{ url_for('patient.appoinments')}}">Appointments</a></li>
-      <li><a href="{{ url_for('patient.faqpage')}}">FAQ</a></li>
-      <li><a href="{{ url_for('patient.notification')}}">Notifications</a></li>
-      <div class="d-flex align-items-center text-white hello-patient">
-  <span class="me-2">Hello {{ user }}</span>
-  <i class="bi bi-person-circle fs-5"></i>
-</div>
-    </ul>    
-  </nav>
+      <ul class="navbar-nav">
+        <li><a href="{{ url_for('patient.dashboard')}}">Home</a></li>              
+        <li><a href="{{ url_for('patient.appoinments')}}">Appointments</a></li>
+        <li><a href="{{ url_for('patient.faqpage')}}">FAQ</a></li>
+        <li><a href="{{ url_for('patient.notification')}}">Notifications</a></li>
+        <div class="d-flex align-items-center text-white hello-patient">
+          <div id="popupContainer">
+      <a href="#" id="openFormBtn">Hello Patient {{ user  }} </a>
+      <div id="popupBox" class="popup-box">
+        <h3>Account</h3>
+        <form>          
+          <div><label><a href="{{ url_for('auth.logout')}}">Logout</a></label></div>
+        </form>
+      </div>    
+          <i class="bi bi-person-circle fs-5"></i>
+        </div>
+      </ul>    
+    </nav>
+     <div id="popupOverlay"></div>
 
   <!-- Hero Text -->
   <div class="hero-wrapper">

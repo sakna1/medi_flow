@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_required, login_user, current_user
-from app.models.patient import Patient
+from app.models import Patient
 import qrcode
 import io
 

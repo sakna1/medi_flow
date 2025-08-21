@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app.models.user import User
-from app.models.patient import Patient
+from app.models import User, Patient
 from app import db
 
 admin = Blueprint('admin', __name__)
