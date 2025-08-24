@@ -21,7 +21,7 @@ def editprofile():
 @nurse.route('/nurse/log_scan', methods=['POST'])
 @login_required
 def log_scan():
-    if current_user.role != 'nurse':
+    if current_user.role.lower() != 'nurse':
         return jsonify({'message': 'Unauthorized'}), 403
 
     data = request.get_json()

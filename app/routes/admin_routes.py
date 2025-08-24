@@ -29,7 +29,7 @@ def create_admin_user():
             db.session.add(user)
             db.session.commit()
             flash(f"{user.role.capitalize()} admin registered successfully.")
-            return render_template('login.html')
+            # return render_template('login.html')
 
         return render_template('register.html')
     else:

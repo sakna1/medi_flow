@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
             (decodedText, decodedResult) => {
                 console.log(`Scanned code: ${decodedText}`);
                 // Send to Flask backend
-                fetch("/nurse/scan", {
+                fetch("/nurse/log_scan", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ qr_data: decodedText })
