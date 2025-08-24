@@ -29,7 +29,7 @@ def create_admin_user():
             db.session.add(user)
             db.session.commit()
             flash(f"{user.role.capitalize()} admin registered successfully.")
-            # return render_template('login.html')
+            return render_template('login.html')
 
         return render_template('register.html')
     else:
@@ -42,49 +42,53 @@ def dashboard():
     return render_template('admin/dashboard.html',admin_name=admin_name)
 
 @admin.route('/admin/register', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def register_user():
-    if current_user.role != 'Admin':
+    # Only Admins and Nurses can access
+    if current_user.role not in ['Admin', 'Nurse']:
         return "Access denied", 403
 
     if request.method == 'POST':
-        if request.form['role'].lower() == 'patient':
+        role = request.form.get('role', '').lower()
+
+        if role == 'patient':
             user = Patient(
-                username=request.form['username'],
-                email=request.form['email'],
-                first_name=request.form['first_name'],
-                last_name=request.form['last_name'],
-                gender=request.form['gender'],                
-                )
+                username=request.form.get('username'),
+                email=request.form.get('email'),
+                first_name=request.form.get('first_name'),
+                last_name=request.form.get('last_name'),
+                gender=request.form.get('gender'),
+            )
         else:
             user = User(
-                username=request.form['username'],
-                email=request.form['email'],
-                first_name=request.form['first_name'],
-                last_name=request.form['last_name'],
+                username=request.form.get('username'),
+                email=request.form.get('email'),
+                first_name=request.form.get('first_name'),
+                last_name=request.form.get('last_name'),
                 gender=request.form.get('gender'),
-                role=request.form['role'],
+                role=request.form.get('role'),
                 phone=request.form.get('phone'),
                 emergency_contact_first_name=request.form.get('emergency_contact_first_name'),
                 emergency_contact_last_name=request.form.get('emergency_contact_last_name'),
                 emergency_contact_phone=request.form.get('emergency_contact_phone'),
-                date_of_birth=request.form.get('date_of_birth'),  
+                date_of_birth=request.form.get('date_of_birth'),
                 marital_status=request.form.get('marital_status'),
                 address=request.form.get('address'),
                 nic=request.form.get('nic'),
-                )
-        user.set_password(request.form['password'])
+            )
 
-        if request.form['role'].lower() == 'doctor':
-            user.specialization = request.form['specialization']
-        elif request.form['role'].lower() == 'patient':
-            user.address = request.form['address']
-            user.disease = request.form['disease'] if 'disease' in request.form else ''
-            user.phone = request.form['phone']
+        user.set_password(request.form.get('password'))
+
+        if role == 'doctor':
+            user.specialization = request.form.get('specialization')
+        elif role == 'patient':
+            user.address = request.form.get('address')
+            user.disease = request.form.get('disease', '')
+            user.phone = request.form.get('phone')
 
         db.session.add(user)
         db.session.commit()
-        flash("registered successfully.")
+        flash("Registered successfully.")
         return redirect(url_for('admin.dashboard'))
 
     return render_template('register.html')

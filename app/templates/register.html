@@ -1,108 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Registration Form</title>
-  <link rel="stylesheet" href="../static/css/register.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registration Form - MediFlow</title>
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <img src="../static/img/logonew.png" alt="MEDIFLOW Logo" class="logo" />
-      <div class="header-text">
-        <h2>Staff Registration Form</h2>
-        <p>Maharagama Apeksha Hospital</p>
-      </div>
-    </div>
+  <div class="form-container">
+    <div class="form-top">
+      <a href="{{ url_for('static', filename='css/register.css') }}" class="back-link">
+        &#8592; Back to Dashboard
+      </a>
+     </div>
 
-    <form method="POST" class="form">
+    <div class = "header">
+      <img src="../static/img/logo.png" alt="MEDIFLOW Logo" class="logo" />
+       <div class="header-text">
+      <h2 class="form-title">Registration Form</h2>
+      <p class="form-subtitle">Maharagama Apeksha Hospital</p>  
+    </div>
+    </div>   
+    
+    <form>
+      <!-- Section: Account Info -->
+      <h3 class="section-title">Account Information</h3>
       <div class="form-group">
-        <label for="role">Role</label>
-        <select id="role" name="role" required>
-          <option value="Patient">Patient</option>
+        <label for="role">Role <span>*</span></label>
+        <select id="role">
+        {% if current_user.role == 'Nurse' %}
+      <!-- Nurse can only register Patients -->
+      <option value="Patient">Patient</option>
+
+        {% elif current_user.role == 'Admin' %}
+          <!-- Admin can assign any role -->
           <option value="Doctor">Doctor</option>
           <option value="Nurse">Nurse</option>
-          <option value="Admin">Admin</option>          
+          <option value="Admin">Admin</option>
+          <option value="Patient">Patient</option>
+        {% endif %}
         </select>
       </div>
 
       <div class="form-group">
-        <label for="username">UserName</label>
-        <input type="text" id="username" name="username" required />
+        <label for="username">Username <span>*</span></label>
+        <input type="text" id="username" placeholder="Enter username">
       </div>
 
       <div class="form-group">
-        <label>Name</label>
-        <div class="multi-input">
-          <input type="text" id="first_name" name="first_name" placeholder="First Name" required />
-          <input type="text" id="last_name" name="last_name" placeholder="Last Name" required />
+        <label for="password">Password <span>*</span></label>
+        <input type="password" id="password" placeholder="Enter password">
+      </div>
+
+      <!-- Section: Personal Info -->
+      <h3 class="section-title">Personal Information</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fname">First Name <span>*</span></label>
+          <input type="text" id="first_name" placeholder="First Name">
+        </div>
+        <div class="form-group">
+          <label for="lname">Last Name</label>
+          <input type="text" id="last_name" placeholder="Last Name">
         </div>
       </div>
 
-      <div class="form-group gender">
-        <label>Gender</label>
-        <div class="gender-options">
-          <label><input type="radio" name="gender" value="Male" required /> Male</label>
-          <label><input type="radio" name="gender" value="Female" /> Female</label>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="gender">Gender <span>*</span></label>
+          <select id="gender">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>            
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="dob">Date of Birth <span>*</span></label>
+          <input type="date" id="date_of_birth">
         </div>
       </div>
 
       <div class="form-group">
-        <label for="phone">Phone</label>
-        <input type="text" id="phone" name="phone" />
+        <label for="marital">Marital Status</label>
+        <select id="marital">
+          <option value="single">Single</option>
+          <option value="married" >Married</option>         
+        </select>
+      </div>
+
+      <!-- Section: Contact Info -->
+      <h3 class="section-title">Contact Information</h3>
+      <div class="form-group">
+        <label for="phone">Phone <span>*</span></label>
+        <input type="tel" id="phone" placeholder="e.g. 0771234567">
       </div>
 
       <div class="form-group">
-        <label>Emergency Contact Name</label>
-        <div class="multi-input">
-          <input type="text" id="emergency_contact_first_name" name="emergency_contact_first_name" placeholder="First Name" />
-          <input type="text" id="emergency_contact_last_name" name="emergency_contact_last_name" placeholder="Last Name" />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="emergency_contact_phone">Emergency Contact Phone</label>
-        <input type="text" id="emergency_contact_phone" name="emergency_contact_phone" />
-      </div>
-
-      <div class="form-group">
-        <label for="date_of_birth">Date of Birth</label>
-        <input type="date" id="date_of_birth" name="date_of_birth" />
-      </div>
-
-      <div class="form-group">
-        <label for="marital_status">Marital Status</label>
-        <input type="text" id="marital_status" name="marital_status" />
-      </div>
-
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required />
+        <label for="email">Email <span>*</span></label>
+        <input type="email" id="email" placeholder="e.g. name@email.com">
       </div>
 
       <div class="form-group">
         <label for="address">Address</label>
-        <input type="text" id="address" name="address" />
+        <textarea id="address" placeholder="Enter full address"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="emergencyName">Emergency Contact Name</label>
+          <input type="text" id="emergencyName" placeholder="Name">
+        </div>
+        <div class="form-group">
+          <label for="emergencyPhone">Emergency Phone</label>
+          <input type="tel" id="emergency_contact_phone" placeholder="e.g. 0712345678">
+        </div>
+      </div>
+
+      <!-- Section: Medical Info -->
+       <div id="medical-info" style="display: none;">
+      <h3 class="section-title">Medical Information</h3>
+      <div class="form-group">
+        <label for="disease">Disease</label>
+        <input type="text" id="disease" placeholder="Disease Name">
       </div>
 
       <div class="form-group">
-        <label for="nic">NIC</label>
-        <input type="text" id="nic" name="nic" />
+        <label for="description">Disease Description</label>
+        <textarea id="description" placeholder="Describe the disease..."></textarea>
       </div>
 
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required />
+      <div class="form-row">
+        <div class="form-group">
+          <label for="blood">Blood Type</label>
+          <input type="text" id="blood" placeholder="e.g. A+">
+        </div>
+        <div class="form-group">
+          <label for="treatment">Treatment Status</label>
+          <select id="treatment">
+            <option>In Progress</option>
+            <option>Completed</option>
+            <option>Not Started</option>
+          </select>
+        </div>
       </div>
+    </div>
 
-      <div class="form-group">
-        <label for="specialization">Specialization</label>
-        <input type="text" id="specialization" name="specialization" />
+      <!-- Submit Button -->
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">Register</button>
+        <button type="button" class="btn-reset" onclick="resetForm()">Reset</button>
       </div>
-
-      <button type="submit" class="save-btn">Save</button>
     </form>
   </div>
+  <script src="{{ url_for('static', filename='js/registerpatient.js') }}"></script>
 </body>
 </html>

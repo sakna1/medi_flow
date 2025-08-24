@@ -25,7 +25,7 @@ def log_scan():
         return jsonify({'message': 'Unauthorized'}), 403
 
     data = request.get_json()
-    patient_code = data.get('patient_code')
+    patient_code = data.get('qr_data')
 
     patient = Patient.query.filter_by(username=patient_code).first()
     if not patient:

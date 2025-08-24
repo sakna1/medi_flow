@@ -15,7 +15,7 @@
       <div class="form-wrapper relative max-w-xl mx-auto my-10 bg-white p-5 rounded-md shadow-sm">
         
         <!-- Close Button -->
-        <a href="chatgpttest.html" 
+        <a href="{{ url_for('patient.dashboard')}}" 
            class="absolute top-4 right-4 text-gray-600 hover:text-red-600 text-3xl font-bold cursor-pointer" 
            title="Close & Go Home">&times;</a>
         
@@ -70,11 +70,7 @@
         </div>
       </div>
     </div>
-  </div>
-  
-  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/contact.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/Search.js') }}"></script>
+  </div>   
+  <script src="{{ url_for('static', filename='js/contact.js') }}"></script>  
 </body>
 </html>
