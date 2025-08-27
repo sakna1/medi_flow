@@ -10,8 +10,7 @@ class User(db.Model, UserMixin):
     last_name = db.Column(db.String(100))
     gender = db.Column(db.String(10))  # Male, Female
     phone = db.Column(db.String(20))
-    emergency_contact_first_name = db.Column(db.String(100))
-    emergency_contact_last_name = db.Column(db.String(100))
+    emergency_contact_name = db.Column(db.String(100))   
     emergency_contact_phone = db.Column(db.String(20))
     date_of_birth = db.Column(db.Date)
     marital_status = db.Column(db.String(20))  # Single, Married, etc.

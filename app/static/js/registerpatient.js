@@ -11,26 +11,41 @@ function resetForm() {
     el.checked = false;
   });
 
-  // also hide Medical Info again after reset
+  // also hide sections again after reset
   document.getElementById("medical-info").style.display = "none";
+  document.getElementById("doctor-info").style.display = "none";
 }
 
-// Show/hide Medical Info based on Role
+// Show/hide Medical Info & Doctor Info based on Role
 document.addEventListener("DOMContentLoaded", () => {
   const roleSelect = document.getElementById("role");
   const medicalSection = document.getElementById("medical-info");
+  const doctorSection = document.getElementById("doctor-info");
+  const specializationInput = document.getElementById("specialization");
 
-  function toggleMedicalInfo() {
-    if (roleSelect.value === "Patient") {
+  function toggleSections() {
+    const role = roleSelect.value;
+
+    // Show Patient fields
+    if (role === "Patient") {
       medicalSection.style.display = "block";
     } else {
       medicalSection.style.display = "none";
     }
+
+    // Show Doctor fields
+    if (role === "Doctor") {
+      doctorSection.style.display = "block";
+      specializationInput.setAttribute("required", "required");
+    } else {
+      doctorSection.style.display = "none";
+      specializationInput.removeAttribute("required");
+    }
   }
 
   // Run once on load
-  toggleMedicalInfo();
+  toggleSections();
 
-  // Run again on change
-  roleSelect.addEventListener("change", toggleMedicalInfo);
+  // Run on change
+  roleSelect.addEventListener("change", toggleSections);
 });

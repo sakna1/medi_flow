@@ -7,9 +7,14 @@
  <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
 </head>
 <body>
+  
   <div class="form-container">
     <div class="form-top">
-      <a href="{{ url_for('static', filename='css/register.css') }}" class="back-link">
+      <a href="{% if current_user.role == 'Admin' %}
+              {{ url_for('admin.dashboard') }}
+            {% elif current_user.role == 'Nurse' %}
+              {{ url_for('nurse.dashboard') }}
+            {% endif %}" class="back-link">
         &#8592; Back to Dashboard
       </a>
      </div>
@@ -38,6 +43,10 @@
           <option value="Nurse">Nurse</option>
           <option value="Admin">Admin</option>
           <option value="Patient">Patient</option>
+
+          {% elif current_user.role == 'Doctor' %}
+          <option value="Doctor">Doctor</option>
+
         {% endif %}
         </select>
       </div>
@@ -79,13 +88,19 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="marital">Marital Status</label>
-        <select id="marital">
-          <option value="single">Single</option>
-          <option value="married" >Married</option>         
-        </select>
-      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="marital">>Marital Status <span>*</span></label>
+          <select id="marital">
+            <option value="single">Single</option>
+            <option value="married">Married</option>            
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="dob">NIC <span>*</span></label>
+          <input type="text" id="nic" placeholder="NIC">
+        </div>
+      </div>      
 
       <!-- Section: Contact Info -->
       <h3 class="section-title">Contact Information</h3>
@@ -143,7 +158,14 @@
         </div>
       </div>
     </div>
-
+      <!-- Doctor Section -->
+        <div id="doctor-info" style="display: none;">
+          <h3 class="section-title">Doctor Information</h3>
+          <div class="form-group">
+            <label for="specialization">Specialization <span>*</span></label>
+            <input type="text" id="specialization"  placeholder="e.g. Oncology, Cardiology">
+          </div>
+        </div>
       <!-- Submit Button -->
       <div class="form-actions">
         <button type="submit" class="btn-submit">Register</button>

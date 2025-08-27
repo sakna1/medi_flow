@@ -16,6 +16,12 @@ class Patient(db.Model, UserMixin):
     address = db.Column(db.String(200))
     phone = db.Column(db.String(20))
     disease = db.Column(db.String(200))
+    description = db.Column(db.Text) 
+    blood_type = db.Column(db.String(5))  
+    treatment_status = db.Column(db.String(20)) 
+    marital_status = db.Column(db.String(20))  
+    emergency_contact_name = db.Column(db.String(100))    
+    emergency_phone = db.Column(db.String(20))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
