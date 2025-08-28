@@ -27,12 +27,12 @@
     </div>
     </div>   
     
-    <form>
+    <form method="POST" action="{{ url_for('admin.register_user') }}">
       <!-- Section: Account Info -->
       <h3 class="section-title">Account Information</h3>
       <div class="form-group">
         <label for="role">Role <span>*</span></label>
-        <select id="role">
+        <select id="role" name="role">
         {% if current_user.role == 'Nurse' %}
       <!-- Nurse can only register Patients -->
       <option value="Patient">Patient</option>
@@ -53,12 +53,12 @@
 
       <div class="form-group">
         <label for="username">Username <span>*</span></label>
-        <input type="text" id="username" placeholder="Enter username">
+        <input type="text" id="username" name="username" placeholder="Enter username">
       </div>
 
       <div class="form-group">
         <label for="password">Password <span>*</span></label>
-        <input type="password" id="password" placeholder="Enter password">
+        <input type="password" id="password" name="password" placeholder="Enter password">
       </div>
 
       <!-- Section: Personal Info -->
@@ -66,39 +66,39 @@
       <div class="form-row">
         <div class="form-group">
           <label for="fname">First Name <span>*</span></label>
-          <input type="text" id="first_name" placeholder="First Name">
+          <input type="text" id="first_name" name="first_name" placeholder="First Name">
         </div>
         <div class="form-group">
           <label for="lname">Last Name</label>
-          <input type="text" id="last_name" placeholder="Last Name">
+          <input type="text" id="last_name" name="last_name" placeholder="Last Name">
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label for="gender">Gender <span>*</span></label>
-          <select id="gender">
+         <label for="gender">Gender <span>*</span></label>
+          <select id="gender" name="gender">
             <option value="Male">Male</option>
-            <option value="Female">Female</option>            
+            <option value="Female">Female</option>
           </select>
         </div>
         <div class="form-group">
           <label for="dob">Date of Birth <span>*</span></label>
-          <input type="date" id="date_of_birth">
+          <input type="date" id="date_of_birth" name="date_of_birth">
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label for="marital">>Marital Status <span>*</span></label>
-          <select id="marital">
-            <option value="single">Single</option>
-            <option value="married">Married</option>            
-          </select>
+           <label for="marital">Marital Status <span>*</span></label>
+            <select id="marital" name="marital_status">
+              <option value="single">Single</option>
+              <option value="married">Married</option>
+            </select>
         </div>
         <div class="form-group">
           <label for="dob">NIC <span>*</span></label>
-          <input type="text" id="nic" placeholder="NIC">
+          <input type="text" id="nic" name="nic">
         </div>
       </div>      
 
@@ -106,27 +106,27 @@
       <h3 class="section-title">Contact Information</h3>
       <div class="form-group">
         <label for="phone">Phone <span>*</span></label>
-        <input type="tel" id="phone" placeholder="e.g. 0771234567">
+        <input type="tel" id="phone" name="phone">
       </div>
 
       <div class="form-group">
         <label for="email">Email <span>*</span></label>
-        <input type="email" id="email" placeholder="e.g. name@email.com">
+        <input type="email" id="email" name="email">
       </div>
 
       <div class="form-group">
         <label for="address">Address</label>
-        <textarea id="address" placeholder="Enter full address"></textarea>
+        <textarea id="address" name="address"></textarea>
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label for="emergencyName">Emergency Contact Name</label>
-          <input type="text" id="emergencyName" placeholder="Name">
+          <input type="text" id="emergencyName" name="emergency_contact_name">
         </div>
         <div class="form-group">
           <label for="emergencyPhone">Emergency Phone</label>
-          <input type="tel" id="emergency_contact_phone" placeholder="e.g. 0712345678">
+          <input type="tel" id="emergency_contact_phone" name="emergency_contact_phone">
         </div>
       </div>
 
@@ -135,26 +135,26 @@
       <h3 class="section-title">Medical Information</h3>
       <div class="form-group">
         <label for="disease">Disease</label>
-        <input type="text" id="disease" placeholder="Disease Name">
+        <input type="text" id="disease" name="disease">
       </div>
 
       <div class="form-group">
         <label for="description">Disease Description</label>
-        <textarea id="description" placeholder="Describe the disease..."></textarea>
+        <textarea id="description" name="disease_description"></textarea>
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label for="blood">Blood Type</label>
-          <input type="text" id="blood" placeholder="e.g. A+">
+          <input type="text" id="blood" name="blood">
         </div>
         <div class="form-group">
           <label for="treatment">Treatment Status</label>
-          <select id="treatment">
-            <option>In Progress</option>
-            <option>Completed</option>
-            <option>Not Started</option>
-          </select>
+          <select id="treatment" name="treatment_status" required>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+            <option value="Not Started">Not Started</option>
+        </select>
         </div>
       </div>
     </div>
@@ -163,7 +163,7 @@
           <h3 class="section-title">Doctor Information</h3>
           <div class="form-group">
             <label for="specialization">Specialization <span>*</span></label>
-            <input type="text" id="specialization"  placeholder="e.g. Oncology, Cardiology">
+           <input type="text" id="specialization" name="specialization">
           </div>
         </div>
       <!-- Submit Button -->

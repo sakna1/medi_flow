@@ -57,7 +57,18 @@ def register_user():
                 email=request.form.get('email'),
                 first_name=request.form.get('first_name'),
                 last_name=request.form.get('last_name'),
-                gender=request.form.get('gender'),
+                gender=request.form.get('gender'),                
+                phone=request.form.get('phone'),
+                emergency_contact_name=request.form.get('emergency_contact_name'),
+                emergency_phone=request.form.get('emergency_contact_phone'),
+                dob=request.form.get('date_of_birth'),
+                marital_status=request.form.get('marital_status'),
+                address=request.form.get('address'),
+                nic=request.form.get('nic'),
+                disease=request.form.get('disease'),
+                description=request.form.get('disease_description'),
+                blood_type=request.form.get('blood'),
+                treatment_status=request.form.get('treatment_status'),
             )
         else:
             user = User(
@@ -66,10 +77,9 @@ def register_user():
                 first_name=request.form.get('first_name'),
                 last_name=request.form.get('last_name'),
                 gender=request.form.get('gender'),
-                role=request.form.get('role'),
+                role=role,
                 phone=request.form.get('phone'),
-                emergency_contact_first_name=request.form.get('emergency_contact_first_name'),
-                emergency_contact_last_name=request.form.get('emergency_contact_last_name'),
+                emergency_contact_name=request.form.get('emergency_contact_name'),
                 emergency_contact_phone=request.form.get('emergency_contact_phone'),
                 date_of_birth=request.form.get('date_of_birth'),
                 marital_status=request.form.get('marital_status'),
@@ -77,19 +87,19 @@ def register_user():
                 nic=request.form.get('nic'),
             )
 
-        user.set_password(request.form.get('password'))
-
         if role == 'doctor':
-            user.specialization = request.form.get('specialization')
-        elif role == 'patient':
-            user.address = request.form.get('address')
-            user.disease = request.form.get('disease', '')
-            user.phone = request.form.get('phone')
+                user.specialization = request.form.get('specialization')
 
+        # Set password securely
+        user.set_password(request.form.get('password'))
+        
         db.session.add(user)
         db.session.commit()
         flash("Registered successfully.")
-        return redirect(url_for('admin.dashboard'))
+        if current_user.role == 'Admin':
+          return redirect(url_for('admin.dashboard'))
+        elif current_user.role == 'Nurse':
+          return redirect(url_for('nurse.dashboard'))
 
     return render_template('register.html')
 

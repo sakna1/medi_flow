@@ -21,7 +21,8 @@ class Patient(db.Model, UserMixin):
     treatment_status = db.Column(db.String(20)) 
     marital_status = db.Column(db.String(20))  
     emergency_contact_name = db.Column(db.String(100))    
-    emergency_phone = db.Column(db.String(20))
+    emergency_phone = db.Column(db.String(20))    
+    nic = db.Column(db.String(20), unique=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
