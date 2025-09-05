@@ -11,8 +11,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <div class="wrapper">
-
-
 <body>
   <!-- Background Blur -->
   <div class="bg-blur"></div>
@@ -79,29 +77,49 @@
             <button class="accordion-btn">Where do I get an appointment for radiation treatment?</button>
             <div class="accordion-content">Visit the oncology counter or book via Mediflow App.</div>
           </div>
+          <div class="accordion-item">
+            <button class="accordion-btn">How can I book a doctor consultation?</button>
+            <div class="accordion-content">Consultations can be booked via the patient portal or hospital reception desk.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-btn">Do you provide pharmacy services?</button>
+            <div class="accordion-content">es, our pharmacy is open from 7:00 AM to 8:00 PM daily.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-btn">Are visiting hours allowed for patients?</button>
+            <div class="accordion-content">Visiting hours are from 4:00 PM to 6:00 PM, except in critical care units.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-btn">How do I access my medical records?</button>
+            <div class="accordion-content">Patients can access records through the Mediflow dashboard after login.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-btn">Is there parking available for patients?</button>
+            <div class="accordion-content">Yes, parking facilities are available near the main hospital entrance.</div>
+          </div>         
         </div>
       </div>
       <div class="faq-image">
-        <img src="img/faq.jpg" alt="FAQ Illustration">
+        <img src="../static/img/faq.jpg" alt="Mediflow Logo">
       </div>
     </div>
   </section>
 </div>
-<a href="chatgpttest.html" class="back-btn">Back</a>
+<a href="{{ url_for('patient.dashboard')}}" class="back-btn">Back</a>
 
   <!-- Footer -->
   <footer class="footer">
-  <div class="footer-content">
-    <div class="footer-left">
-      © 2025 Mediflow. All rights reserved.
+    <div class="footer-content">
+      <div class="footer-left">
+        &copy; 2025 Mediflow. All rights reserved.
+      </div>
+      <div class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="{{ url_for('patient.contact')}}" class="text-white underline hover:text-indigo-300">Contact Us</a>
+      </div>
     </div>
-    <div class="footer-links">
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="{{ url_for('patient.contact')}}" class="text-white underline hover:text-indigo-300">Contact Us</a>
-    </div>
-  </div>
-</footer>
+  </footer>
 
   <script src="{{ url_for('static', filename='js/faqscript.js') }}"></script>
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>

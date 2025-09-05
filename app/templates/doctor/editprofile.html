@@ -68,121 +68,67 @@
 
     <!-- Search -->
     <section class="search-box">
-      <label>Patient Name</label><input type="text">
-      <label>Patient ID</label><input type="text">
-      <button>Search</button>
+      <label>Patient Name</label>
+      <input type="text" name="patient_name" id="patient_name">
+      <label>Patient ID</label>
+      <input type="text" name="patient_id" id="patient_id">
+      <button id="search-btn">Search</button>
     </section>
     </main>
 
-    <section class="personal-info-card">
+  <section class="personal-info-card">
   <div class="card-header">Personal Info</div>
   <div class="card-body">
     <div class="form-row">
       <label>Patient Id</label>
-      <input type="text" />
+      <input type="text" id="patientid" readonly />
       <label>Date of Birth</label>
-      <input type="date" />
+      <input type="date" id="dob" readonly />
     </div>
     <div class="form-row">
       <label>First Name</label>
-      <input type="text" />
-      <label>Blood Type</label>
-      <input type="text" />
+      <input type="text" id="firstname" readonly />
+      <label>Marital Status</label>
+      <input type="text" id="maritalstatus" readonly />
     </div>
     <div class="form-row">
       <label>Last Name</label>
-      <input type="text" />
+      <input type="text" id="lastname" readonly />
       <label>Email</label>
-      <input type="email" />
+      <input type="email" id="email" readonly />
     </div>
     <div class="form-row">
       <label>Gender</label>
-      <input type="text" />
+      <input type="text" id="gender" readonly />
       <label>Address</label>
-      <input type="text" />
+      <input type="text" id="address" readonly />
     </div>
     <div class="form-row">
       <label>NIC</label>
-      <input type="text" />
+      <input type="text" id="nic" readonly />
       <label>Contact Number</label>
-      <input type="text" />
+      <input type="text" id="contact" readonly />
     </div>
   </div>
 </section>
 
- <section class="personal-info-card">
-  <div class="card-header">Personal Info</div>
+<section class="personal-info-card">
+  <div class="card-header">Medical Info</div>
   <div class="card-body">
     <div class="form-row">
-      <label>Patient Id</label>
-      <input type="text" />
-      <label>Date of Birth</label>
-      <input type="date" />
+      <label>Disease</label>
+      <input type="text" id="disease" readonly />
+      <label>Description</label>
+      <input type="text" id="description" readonly />
     </div>
     <div class="form-row">
-      <label>First Name</label>
-      <input type="text" />
+      <label>Treatment Status</label>
+      <input type="text" id="treatmentstatus" readonly />
       <label>Blood Type</label>
-      <input type="text" />
-    </div>
-    <div class="form-row">
-      <label>Last Name</label>
-      <input type="text" />
-      <label>Email</label>
-      <input type="email" />
-    </div>
-    <div class="form-row">
-      <label>Gender</label>
-      <input type="text" />
-      <label>Address</label>
-      <input type="text" />
-    </div>
-    <div class="form-row">
-      <label>NIC</label>
-      <input type="text" />
-      <label>Contact Number</label>
-      <input type="text" />
-    </div>
+      <input type="text" id="bloodtype" readonly />
+    </div>    
   </div>
 </section>
-
- <section class="personal-info-card">
-  <div class="card-header">Personal Info</div>
-  <div class="card-body">
-    <div class="form-row">
-      <label>Patient Id</label>
-      <input type="text" />
-      <label>Date of Birth</label>
-      <input type="date" />
-    </div>
-    <div class="form-row">
-      <label>First Name</label>
-      <input type="text" />
-      <label>Blood Type</label>
-      <input type="text" />
-    </div>
-    <div class="form-row">
-      <label>Last Name</label>
-      <input type="text" />
-      <label>Email</label>
-      <input type="email" />
-    </div>
-    <div class="form-row">
-      <label>Gender</label>
-      <input type="text" />
-      <label>Address</label>
-      <input type="text" />
-    </div>
-    <div class="form-row">
-      <label>NIC</label>
-      <input type="text" />
-      <label>Contact Number</label>
-      <input type="text" />
-    </div>
-  </div>
-</section>
-
-
 <section class="card-section">
   <div class="card-header">Visit History</div>
   <div class="card-body">
