@@ -54,7 +54,7 @@
       <a href="#" id="openFormBtn">Hello Doctor {{ doctor_name }} </a>
       <div id="popupBox" class="popup-box">
         <h3>Account</h3>
-        <form>          
+        <form id="patient-form">          
           <div><label><a href="{{ url_for('auth.logout')}}">Logout</a></label></div>
         </form>
       </div>    
@@ -67,6 +67,7 @@
     <main class="container">
 
     <!-- Search -->
+     
     <section class="search-box">
       <label>Patient Name</label>
       <input type="text" name="patient_name" id="patient_name">
@@ -75,7 +76,7 @@
       <button id="search-btn">Search</button>
     </section>
     </main>
-
+    
   <section class="personal-info-card">
   <div class="card-header">Personal Info</div>
   <div class="card-body">
@@ -142,9 +143,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td></tr>
+        <!-- Visit rows will be injected here by JavaScript -->
       </tbody>
     </table>
   </div>
@@ -176,9 +175,7 @@
 <!-- Save Button -->
 <div class="save-btn-wrapper">
   <button class="save-btn">Save</button>
-</div>
-
-    
+</div>    
 
   </div> <!-- END Page Wrapper -->
 
@@ -196,9 +193,7 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="{{ url_for('static', filename='js/Search.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/contact.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/Search.js') }}"></script> 
   <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>
-
 </body>
 </html>
