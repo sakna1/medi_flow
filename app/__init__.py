@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from config import Config
 from sqlalchemy_utils import database_exists, create_database
+import os
 
 # Extensions
 db = SQLAlchemy()
@@ -15,6 +16,14 @@ login_manager.login_view = 'auth.login'
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    # File upload configuration
+    UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads/reports")
+    ALLOWED_EXTENSIONS = {"pdf", "png", "jpg", "jpeg"}
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+    app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+    app.config["ALLOWED_EXTENSIONS"] = ALLOWED_EXTENSIONS
 
     #Check the database existance
     if not database_exists(Config.SQLALCHEMY_DATABASE_URI):
