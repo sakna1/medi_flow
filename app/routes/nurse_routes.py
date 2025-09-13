@@ -6,6 +6,9 @@ from app import db
 from flask import current_app
 import os
 from werkzeug.utils import secure_filename
+from flask import url_for, send_from_directory
+from datetime import date
+from sqlalchemy import func
 
 nurse = Blueprint('nurse', __name__)
 
@@ -92,16 +95,42 @@ def get_patient_data(patient_id):
             "dob": str(patient.dob),
             "email": patient.email,
             "address": patient.address,
-            "contact_no": patient.contact_no,
+            "phone": patient.phone,
             "gender": patient.gender,
             "nic": patient.nic,
             "marital_status": patient.marital_status
         },
         "reports": [
-            {"id": r.id, "file_name": r.file_name, "uploaded_at": r.uploaded_at.strftime("%Y-%m-%d")}
+            {
+                "id": r.id,
+                "file_name": r.report_name,
+                "uploaded_at": r.uploaded_at.strftime("%Y-%m-%d"),
+                "file_url": url_for("nurse.download_report", report_id=r.id)
+            }
             for r in reports
         ]
     })
+
+
+@nurse.route("/download_report/<int:report_id>")
+def download_report(report_id):
+    report = PatientReport.query.get_or_404(report_id)
+    folder = current_app.config["UPLOAD_FOLDER"]
+    filename = os.path.basename(report.file_path)
+    return send_from_directory(folder, filename, as_attachment=True)
+
+@nurse.route("/view_report/<int:report_id>")
+def view_report(report_id):
+    report = PatientReport.query.get_or_404(report_id)
+    folder = current_app.config["UPLOAD_FOLDER"]
+    filename = os.path.basename(report.file_path)
+    return send_from_directory(folder, filename)  # 👈 No "as_attachment"
+
+@nurse.route("/get_registered_count")
+def get_registered_count():
+    today = date.today()
+    count = Patient.query.filter(func.date(Patient.registered_at) == today).count()
+    return jsonify({"count": count})
 
 
     

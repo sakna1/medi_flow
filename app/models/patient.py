@@ -1,6 +1,7 @@
 from app import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 
 class Patient(db.Model, UserMixin):
@@ -23,6 +24,9 @@ class Patient(db.Model, UserMixin):
     emergency_contact_name = db.Column(db.String(100))    
     emergency_phone = db.Column(db.String(20))    
     nic = db.Column(db.String(20), unique=True)
+    registered_at = db.Column(db.DateTime, default=datetime.utcnow)
+    age = db.Column(db.Integer)
+
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
