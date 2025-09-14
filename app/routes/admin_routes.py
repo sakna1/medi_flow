@@ -1,7 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash,jsonify
 from flask_login import login_required, current_user
-from app.models import User, Patient
+from app.models import User, Patient , PatientLog
 from app import db
+from datetime import date
+from sqlalchemy import func
 
 admin = Blueprint('admin', __name__)
 
@@ -109,3 +111,64 @@ def register_user():
 def editprofile():
     admin_name = current_user.username
     return render_template('admin/editprofile.html',admin_name=admin_name)
+
+@admin.route("/search_user")
+def search_user():
+    name = request.args.get("name")
+    user = User.query.filter(
+        (User.username.ilike(f"%{name}%"))        
+    ).first()
+
+    if user:
+        return jsonify({
+            "id": user.id,
+            "date_of_birth": user.date_of_birth.isoformat() if user.date_of_birth else None,
+            "firstname": user.first_name,
+            "lastname": user.last_name,
+            "marital_status": user.marital_status,
+            "email": user.email,
+            "gender": user.gender,
+            "address": user.address,
+            "nic": user.nic,
+            "phone": user.phone
+        })
+    else:
+        return jsonify(None)
+
+# 💾 Update User
+@admin.route("/update_user/<int:user_id>", methods=["PATCH"])
+def update_user(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    data = request.json
+
+    # update only provided fields
+    for field, value in data.items():
+        if hasattr(user, field) and value is not None and value != "":
+            setattr(user, field, value)
+
+    db.session.commit()
+    return jsonify({"message": "User updated successfully"})
+
+@admin.route("/get_dashboard_counts")
+def get_dashboard_counts():
+    today = date.today()
+    
+    # Today's registered patients
+    registered_count = Patient.query.filter(func.date(Patient.registered_at) == today).count()
+    
+    # Today's appointments
+    appointments_count = PatientLog.query.filter(func.date(PatientLog.scan_time) == today).count()
+    
+    # Ongoing treatments
+    ongoing_treatments_count = Patient.query.filter(Patient.treatment_status == 'In Progress').count()
+    
+    return jsonify({
+        "registered_today": registered_count,
+        "appointments_today": appointments_count,
+        "ongoing_treatments": ongoing_treatments_count
+    })
+
+

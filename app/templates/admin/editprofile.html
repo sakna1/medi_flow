@@ -66,54 +66,55 @@
     <main class="container">
 
     <!-- Search -->
-    <section class="search-box">
-      <label>Doctor ID</label><input type="text">
-      <label>Nurse ID</label><input type="text">
-      <button>Search</button>
-    </section>
-    </main>
+   <section class="search-box">
+    <label>Search User</label>
+    <input type="text" id="searchInput" placeholder="Enter doctor/nurse name">
+    <button type="button" onclick="searchUser()">Search</button>
+   </section>
 
-    <section class="personal-info-card">
+    </main>
+  <section class="personal-info-card">
   <div class="card-header">Personal Info</div>
   <div class="card-body">
     <div class="form-row">
-      <label>Patient Id</label>
-      <input type="text" />
+      <label>User ID</label>
+      <input type="text" id="userid"/>
       <label>Date of Birth</label>
-      <input type="date" />
+      <input type="date" id="dob"  />
     </div>
     <div class="form-row">
       <label>First Name</label>
-      <input type="text" />
-      <label>Blood Type</label>
-      <input type="text" />
+      <input type="text" id="firstname" />
+      <label>Marital Status</label>
+      <input type="text" id="maritalstatus"/>
     </div>
     <div class="form-row">
       <label>Last Name</label>
-      <input type="text" />
+      <input type="text" id="lastname"/>
       <label>Email</label>
-      <input type="email" />
+      <input type="email" id="email"/>
     </div>
     <div class="form-row">
       <label>Gender</label>
-      <input type="text" />
+      <input type="text" id="gender"/>
       <label>Address</label>
-      <input type="text" />
+      <input type="text" id="address"/>
     </div>
     <div class="form-row">
       <label>NIC</label>
-      <input type="text" />
+      <input type="text" id="nic"/>
       <label>Contact Number</label>
-      <input type="text" />
+      <input type="text" id="contact"/>
+    </div>
+     <div class="save-btn-wrapper">
+    <button class="save-btn" onclick="saveUser()">Save</button>
     </div>
   </div>
 </section>
 <!-- Save Button -->
 <div class="save-btn-wrapper">
-  <button class="save-btn">Save</button>
-</div>
-
-    
+  <!--<button class="save-btn">Save</button>-->
+</div>  
 
   </div> <!-- END Page Wrapper -->
 
@@ -129,12 +130,9 @@
       </div>
     </div>
   </footer>
-
   <!-- Scripts -->
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/contact.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/Search.js') }}"></script>
-
+  <script src="{{ url_for('static', filename='js/adminprofile.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>  
 </body>
 </html>

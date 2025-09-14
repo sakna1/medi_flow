@@ -499,3 +499,22 @@ body {
       color: #1d6fa5;      
       cursor: pointer;
     }
+
+   .form-row {
+  display: flex;
+  gap: 20px; /* space between columns */
+  align-items: center;
+}
+
+.form-row label {
+  flex: 0 0 120px; /* fixed width for labels */
+  font-weight: bold;
+}
+
+.form-row select,
+.form-row input {
+  flex: 1; /* take equal space */
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}

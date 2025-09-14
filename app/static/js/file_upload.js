@@ -122,9 +122,58 @@ function updateRegisteredCount() {
         });
 }
 
-
 // Refresh every 1 second
 //setInterval(updateRegisteredCount, 6000);
 
 // Run once immediately when page loads
 updateRegisteredCount();
+
+function savePatient() {
+    let patientId = document.getElementById("patientid").value;
+
+    let updatedData = {};
+
+    // check each field before adding
+    if (document.getElementById("dob").value) {
+        updatedData.dob = document.getElementById("dob").value;
+    }
+    if (document.getElementById("firstname").value) {
+        updatedData.first_name = document.getElementById("firstname").value;
+    }
+    if (document.getElementById("maritalstatus").value) {
+        updatedData.marital_status = document.getElementById("maritalstatus").value;
+    }
+    if (document.getElementById("lastname").value) {
+        updatedData.last_name = document.getElementById("lastname").value;
+    }
+    if (document.getElementById("email").value) {
+        updatedData.email = document.getElementById("email").value;
+    }
+    if (document.getElementById("gender").value) {
+        updatedData.gender = document.getElementById("gender").value;
+    }
+    if (document.getElementById("address").value) {
+        updatedData.address = document.getElementById("address").value;
+    }
+    if (document.getElementById("nic").value) {
+        updatedData.nic = document.getElementById("nic").value;
+    }
+    if (document.getElementById("contact").value) {
+        updatedData.contact = document.getElementById("contact").value;
+    }
+
+    fetch(`/update_patient/${patientId}`, {
+        method: "POST",   // or PUT if you prefer REST style
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(updatedData)
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || "Updated successfully!");
+        // refresh patient info after saving
+        fetchPatientData(patientId);
+    })
+    .catch(err => console.error("Update failed:", err));
+}
+
+

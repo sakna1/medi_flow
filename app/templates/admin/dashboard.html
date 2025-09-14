@@ -96,17 +96,17 @@
         <div class="card">
           <div class="card-icon"><i class="bi bi-list-task"></i></div>
           <h3>Ongoing Treatment</h3>          
-          <p>05</p>
+          <span id="ongoing-count">0</span>
         </div>
         <div class="card">
           <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
           <h3>New Patients Today</h3>
-          <p>05</p>
+          <span id="registered-count">0</span>
         </div>
         <div class="card">
           <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
           <h3>Appoinments Today</h3>
-          <p>05</p>
+          <span id="appointments-count">0</span>
         </div>
       </div>   
     </div>
@@ -114,7 +114,7 @@
   <!-- Charts Section -->
   <div class="charts">
     <div class="chart-box"> <!-- You can replace with Chart.js later -->
-      <h3>Patient Count per Clinic</h3>
+      <h3>Patient Count per month</h3>
       <canvas id="clinicChart"></canvas>
     </div>
     <div class="chart-box">
@@ -172,10 +172,7 @@
       </tbody>
     </table>
   </section>
-
-</main>
-
-    
+</main>   
 
   </div> <!-- END Page Wrapper -->
 
@@ -193,10 +190,8 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/contact.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/Search.js') }}"></script>
-
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script> 
+  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script> 
+  <script src="{{ url_for('static', filename='js/adminprofile.js') }}"></script>
 </body>
 </html>

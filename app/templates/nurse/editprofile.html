@@ -62,11 +62,7 @@
       </ul>    
     </nav>
      <div id="popupOverlay"></div>
-
-
-
     <main class="container">
-
     <!-- Search -->
     <section class="search-box">
       <label>Patient Name</label>
@@ -110,6 +106,9 @@
       <label>Contact Number</label>
       <input type="text" id="contact"/>
     </div>
+     <div class="save-btn-wrapper">
+    <button class="save-btn" onclick="savePatient()">Save</button>
+    </div>
   </div>
 </section>
 <!-- Reports Card -->
@@ -119,20 +118,11 @@
     <!-- Reports will load here via JS -->
   </div>
   <div class="save-btn-wrapper">
-
-    <input type="file" id="reportFile" style="display:none" />
-    <button class="save-btn" onclick="document.getElementById('reportFile').click()">Add files</button>
-    
+    <input type="file" id="reportFile" style="display:none"/>
+    <button class="save-btn" onclick="document.getElementById('reportFile').click()">Add files</button> 
   </div>
 </section>
-
-<!-- Save Button 
-<div class="save-btn-wrapper">
-  <button class="save-btn">Save</button>
-</div>  -->  
-
-  </div> <!-- END Page Wrapper -->
-
+</div> <!-- END Page Wrapper -->
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-content">

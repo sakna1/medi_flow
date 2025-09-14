@@ -123,12 +123,25 @@
       <input type="text" id="description" readonly />
     </div>
     <div class="form-row">
-      <label>Treatment Status</label>
-      <input type="text" id="treatmentstatus" readonly />
-      <label>Blood Type</label>
-      <input type="text" id="bloodtype" readonly />
-    </div>    
-  </div>
+  <label for="treatmentstatus1">Treatment Status</label>
+  <select id="treatmentstatus1" name="treatment_status1">
+    <option value="Going to Start">Going to Start</option>
+    <option value="In Progress">In Progress</option>
+    <option value="Completed">Completed</option>
+    <option value="Completed">Followup</option>       
+  </select>
+
+  <label for="treatmentstatus2">Treatment Type</label>
+  <select id="treatmentstatus2" name="treatment_status2">
+    <option value="Going to Start">Surgery</option>
+    <option value="In Progress">Chemotherapy</option>
+    <option value="Completed">Radiation</option>
+    <option value="Completed">Under Medicine</option>       
+  </select>
+
+  <label for="bloodtype">Blood Type</label>
+  <input type="text" id="bloodtype" readonly />
+</div>
 </section>
 <section class="card-section">
   <div class="card-header">Visit History</div>
