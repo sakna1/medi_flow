@@ -76,6 +76,9 @@
       <button id="search-btn">Search</button>
     </section>
     </main>
+<section class="appointment-actions">
+  <button class="start-btn" id="startAppointment">Start Appointment</button>
+</section> 
     
   <section class="personal-info-card">
   <div class="card-header">Personal Info</div>
@@ -123,7 +126,7 @@
       <input type="text" id="description" readonly />
     </div>
     <div class="form-row">
-  <label for="treatmentstatus1">Treatment Status</label>
+  <label for="treatmentstatus">Treatment Status</label>
   <select id="treatmentstatus1" name="treatment_status1">
     <option value="Going to Start">Going to Start</option>
     <option value="In Progress">In Progress</option>
@@ -131,8 +134,8 @@
     <option value="Completed">Followup</option>       
   </select>
 
-  <label for="treatmentstatus2">Treatment Type</label>
-  <select id="treatmentstatus2" name="treatment_status2">
+  <label for="treatmentstatus">Treatment Type</label>
+  <select id="treatmentstatus" name="treatment_status2">
     <option value="Going to Start">Surgery</option>
     <option value="In Progress">Chemotherapy</option>
     <option value="Completed">Radiation</option>
@@ -142,6 +145,9 @@
   <label for="bloodtype">Blood Type</label>
   <input type="text" id="bloodtype" readonly />
 </div>
+ <div class="save-btn-wrapper">
+    <button class="save-btn" onclick="savePatient()">Save</button>
+    </div>
 </section>
 <section class="card-section">
   <div class="card-header">Visit History</div>
@@ -159,6 +165,11 @@
         <!-- Visit rows will be injected here by JavaScript -->
       </tbody>
     </table>
+    <div class="next-appointment">
+      <label for="nextAppointmentDate"><strong>Next Appointment Date:</strong></label>
+      <input type="date" id="nextAppointmentDate" name="next_appointment">
+      <button id="saveNextAppointment">Save</button>
+    </div>
   </div>
 </section>
 
@@ -187,7 +198,7 @@
 
 <!-- Save Button -->
 <div class="save-btn-wrapper">
-  <button class="save-btn">Save</button>
+  <button class="save-btn" id="completeAppointment">Complete</button> <!-- track the appoinment end time -->
 </div>    
 
   </div> <!-- END Page Wrapper -->

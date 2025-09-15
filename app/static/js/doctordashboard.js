@@ -26,3 +26,66 @@ function addTask() {
       popupBox.classList.remove('active');
       popupOverlay.style.display = 'none';
     });
+
+    document.getElementById("saveNextAppointment").addEventListener("click", function() {
+    const patientId = document.getElementById("patientid").value;
+    const nextDate = document.getElementById("nextAppointmentDate").value;
+
+    if (!nextDate) {
+        alert("Please select a date!");
+        return;
+    }
+
+    fetch(`/save_next_appointment/${patientId}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ next_appointment: nextDate })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Next appointment saved successfully!");
+    })
+    .catch(err => {
+        console.error("Error saving appointment:", err);
+    });
+});
+
+document.getElementById("startAppointment").addEventListener("click", function () {
+    const patientId = document.getElementById("patientid").value;
+
+    if (!patientId) {
+        alert("Please search and load a patient first!");
+        return;
+    }
+
+    fetch(`/start_appointment/${patientId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+    })
+    .catch(err => console.error("Error starting appointment:", err));
+});
+
+document.getElementById("completeAppointment").addEventListener("click", function () {
+    const patientId = document.getElementById("patientid").value;
+
+    if (!patientId) {
+        alert("Please search and load a patient first!");
+        return;
+    }
+
+    fetch(`/complete_appointment/${patientId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+    })
+    .catch(err => console.error("Error completing appointment:", err));
+});

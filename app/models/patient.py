@@ -26,6 +26,8 @@ class Patient(db.Model, UserMixin):
     nic = db.Column(db.String(20), unique=True)
     registered_at = db.Column(db.DateTime, default=datetime.utcnow)
     age = db.Column(db.Integer)
+    treatment_type = db.Column(db.String(50))  
+    next_appointment_date = db.Column(db.Date)
 
 
     def set_password(self, password):
