@@ -2,8 +2,9 @@ from flask import Blueprint, render_template,jsonify,request
 from flask_login import login_required
 from flask_login import current_user
 from app import db
-from app.models import Patient , PatientLog
-from datetime import datetime
+from app.models import Patient , PatientLog ,PatientReport
+from datetime import datetime,date
+from flask import url_for, send_from_directory
 
 doctor = Blueprint('doctor', __name__)
 
@@ -43,8 +44,12 @@ def start_appointment(patient_id):
     if not log:
         return jsonify({"error": "No active log found"}), 404
     
+    today = date.today()
+    if log.scan_time and log.scan_time != today:
+        return jsonify({"error": "Scan time is not today"}), 400
+
     log.start_time = datetime.utcnow()
-    log.scan_time = datetime.utcnow().date()  # <-- sets today's date as scan_time
+    log.scan_time = today  # set to today if not set yet
     db.session.commit()
     return jsonify({"message": "Appointment started!", "scan_time": str(log.scan_time)})
 
@@ -55,7 +60,45 @@ def complete_appointment(patient_id):
     if not log:
         return jsonify({"error": "No active log found"}), 404
     
+    today = date.today()
+    if log.scan_time and log.scan_time != today:
+        return jsonify({"error": "Scan time is not today"}), 400
+
     log.end_time = datetime.utcnow()
-    log.scan_time = datetime.utcnow().date()  # <-- also set here if you want scan_time at completion
+    log.scan_time = today  # ensure today's date
     db.session.commit()
     return jsonify({"message": "Appointment completed!", "scan_time": str(log.scan_time)})
+
+@doctor.route("/update_patient/<int:patient_id>", methods=["POST"])
+def update_patient(patient_id):
+    data = request.get_json()
+    treatment_status = data.get("treatment_status")
+    treatment_type = data.get("treatment_type")
+
+    patient = Patient.query.get(patient_id)
+    if not patient:
+        return jsonify({"error": "Patient not found"}), 404
+
+    patient.treatment_status = treatment_status
+    patient.treatment_type = treatment_type
+    db.session.commit()
+
+    return jsonify({"message": "Patient updated successfully!"}), 200
+
+@doctor.route("/get_patient_reports/<int:patient_id>", methods=["GET"])
+def get_patient_reports(patient_id):
+    reports = PatientReport.query.filter_by(patient_id=patient_id).all()
+    if not reports:
+        return jsonify({"reports": []})
+
+    report_list = [
+        {
+            "id": r.id,
+            "report_name": r.report_name,
+            "file_path": r.file_path,
+            "uploaded_at": r.uploaded_at.strftime("%Y-%m-%d %H:%M")
+        }
+        for r in reports
+    ]
+
+    return jsonify({"reports": report_list})

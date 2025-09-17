@@ -106,7 +106,8 @@ def search_patient():
             "disease": result.disease,
             "description": result.description,
             "treatment_status": result.treatment_status,
-            "blood_type": result.blood_type
+            "blood_type": result.blood_type,
+            "treatment_type": result.treatment_type
         })
     else:
         return jsonify({"error": "No patient found"})

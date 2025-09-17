@@ -66,9 +66,20 @@ document.getElementById("startAppointment").addEventListener("click", function (
     })
     .then(res => res.json())
     .then(data => {
-        alert(data.message);
+        console.log("Server Response:", data); // Debugging
+
+        if (data.message) {
+            alert(`${data.message}\nScan Time: ${data.scan_time}`);
+        } else if (data.error) {
+            alert(`Error: ${data.error}`);
+        } else {
+            alert("Unexpected response from server.");
+        }
     })
-    .catch(err => console.error("Error starting appointment:", err));
+    .catch(err => {
+        console.error("Error starting appointment:", err);
+        alert("Something went wrong. Please try again.");
+    });
 });
 
 document.getElementById("completeAppointment").addEventListener("click", function () {
@@ -86,6 +97,42 @@ document.getElementById("completeAppointment").addEventListener("click", functio
     .then(res => res.json())
     .then(data => {
         alert(data.message);
+        location.reload();
     })
     .catch(err => console.error("Error completing appointment:", err));
 });
+
+function savePatient() {
+  const patientId = document.getElementById("patientid").value; 
+  const treatmentStatus = document.getElementById("treatmentstatus").value;
+  const treatmentType = document.getElementById("treatmentype").value;
+
+  if (!patientId) {
+    alert("⚠️ No patient loaded!");
+    return;
+  }
+
+  fetch(`/update_patient/${patientId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      treatment_status: treatmentStatus,
+      treatment_type: treatmentType
+    }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.error) {
+        alert("❌ " + data.error);
+      } else {
+        alert("✅ Patient updated successfully!");
+      }
+    })
+    .catch((err) => {
+      console.error("Update failed:", err);
+      alert("⚠️ Something went wrong while updating patient.");
+    });
+}
+
+
+

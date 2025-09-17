@@ -46,9 +46,9 @@
     <!-- Navigation Bar -->
     <nav class="navbar">
       <ul class="navbar-nav">
-        <li><a href="{{ url_for('doctor.dashboard')}}">Home</a></li>  
-        <li><a href="{{ url_for('doctor.appoinments')}}">Appointments</a></li>      
+        <li><a href="{{ url_for('doctor.dashboard')}}">Home</a></li>             
         <li><a href="{{ url_for('doctor.editprofile')}}">Patient Profile</a></li>
+        <li><a href="{{ url_for('doctor.appoinments')}}">Appointments</a></li> 
         <div class="d-flex align-items-center text-white hello-patient">
           <div id="popupContainer">
       <a href="#" id="openFormBtn">Hello Doctor {{ doctor_name }} </a>
@@ -127,19 +127,20 @@
     </div>
     <div class="form-row">
   <label for="treatmentstatus">Treatment Status</label>
-  <select id="treatmentstatus1" name="treatment_status1">
-    <option value="Going to Start">Going to Start</option>
-    <option value="In Progress">In Progress</option>
-    <option value="Completed">Completed</option>
-    <option value="Completed">Followup</option>       
+  <select id="treatmentstatus" name="treatment_status">
+    <option value="Going to Start" id = "goingtostart">Going to Start</option>
+    <option value="In Progress" id ="in_progress">In Progress</option>
+    <option value="Completed" id ="completed">Completed</option>
+    <option value="Followup" id ="followup">Followup</option>       
   </select>
 
-  <label for="treatmentstatus">Treatment Type</label>
-  <select id="treatmentstatus" name="treatment_status2">
-    <option value="Going to Start">Surgery</option>
-    <option value="In Progress">Chemotherapy</option>
-    <option value="Completed">Radiation</option>
-    <option value="Completed">Under Medicine</option>       
+  <label for="treatmentype">Treatment Type</label>
+  <select id="treatmentype" name="treatment_type">
+    <option value="Surgery" id ="surgery" >Surgery</option>
+    <option value="Chemotherapy" id = "chemotherapy">Chemotherapy</option>
+    <option value="Radiation" id = "radiation">Radiation</option>
+    <option value="Under Medicine" id="under_medicine">Under Medicine</option> 
+    <option value="No Medicine" id="no_medicine">No Medicine</option>       
   </select>
 
   <label for="bloodtype">Blood Type</label>
@@ -147,7 +148,7 @@
 </div>
  <div class="save-btn-wrapper">
     <button class="save-btn" onclick="savePatient()">Save</button>
-    </div>
+  </div>
 </section>
 <section class="card-section">
   <div class="card-header">Visit History</div>
@@ -176,23 +177,8 @@
 <!-- Reports Card -->
 <section class="card-section">
   <div class="card-header">Reports</div>
-  <div class="card-body report-list">
-    <div class="report-row">
-      <i class="bi bi-file-earmark-text"></i> Blood_Report.pdf
-      <i class="bi bi-download"></i>
-    </div>
-    <div class="report-row">
-      <i class="bi bi-file-earmark-text"></i> X-Ray_Report.pdf
-      <i class="bi bi-download"></i>
-    </div>
-    <div class="report-row">
-      <i class="bi bi-file-earmark-text"></i> Scan_Report.pdf
-      <i class="bi bi-download"></i>
-    </div>
-    <div class="report-row">
-      <i class="bi bi-file-earmark-text"></i> memogram_Report.pdf
-      <i class="bi bi-download"></i>
-    </div>
+ <div class="card-body report-list" id="reportSection">
+    <!-- Reports will load here via JS -->
   </div>
 </section>
 
@@ -219,5 +205,6 @@
   <!-- Scripts -->
   <script src="{{ url_for('static', filename='js/Search.js') }}"></script> 
   <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>
+
 </body>
 </html>

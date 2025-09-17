@@ -48,9 +48,11 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById("description").value = data.description;
       document.getElementById("treatmentstatus").value = data.treatment_status;
       document.getElementById("bloodtype").value = data.blood_type;
+      document.getElementById("treatmentype").value = data.treatment_type;
 
       // Fetch visit history
       fetchVisitHistory(data.id);
+      fetchReports(data.id);
     })
     .catch(err => console.error(err));
   });
@@ -107,6 +109,47 @@ function fetchVisitHistory(patientId) {
       console.error("fetchVisitHistory error:", err);
     });
 }
+
+function fetchReports(patientId) {
+    fetch(`/get_patient_reports/${patientId}`)
+        .then(res => {
+            if (!res.ok) {
+                return res.text().then(text => { 
+                    throw new Error("Server error: " + text);
+                });
+            }
+            return res.json();
+        })
+        .then(data => {
+            let reportList = document.querySelector(".report-list");
+            reportList.innerHTML = "";
+
+            if (!data.reports || data.reports.length === 0) {
+                reportList.innerHTML = "<p>No reports found</p>";
+                return;
+            }
+
+            data.reports.forEach(report => {
+                let newRow = document.createElement("div");
+                newRow.classList.add("report-item");
+
+                newRow.innerHTML = `
+                    <i class="bi bi-file-earmark-text"></i> ${report.report_name}
+                    <a href="/view_report/${report.id}" target="_blank">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="${report.file_path}" download>
+                        <i class="bi bi-download"></i>
+                    </a>
+                `;
+                reportList.appendChild(newRow);
+            });
+        })
+        .catch(err => {
+            console.error("Error fetching reports:", err);
+        });
+}
+
 
 
 // Save note button click (delegated)
