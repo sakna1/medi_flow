@@ -1,179 +1,190 @@
-// -------------------------
-// Upload Report
-// -------------------------
-const reportFileInput = document.getElementById("reportFile");
-if (reportFileInput) {
-    reportFileInput.addEventListener("change", function () {
-        let file = this.files[0];
-        if (!file) return;
 
-        let patientId = document.getElementById("patientid").value;
-        if (!patientId) {
-            alert("⚠️ Please search and select a patient first!");
-            return;
-        }
 
-        let formData = new FormData();
-        formData.append("file", file);
+    // -------------------------
+    // Upload Report
+    // -------------------------
+    const reportFileInput = document.getElementById("reportFile");
+    if (reportFileInput) {
+        reportFileInput.addEventListener("change", function () {
+            const file = this.files[0];
+            if (!file) return;
 
-        fetch(`/upload_report/${patientId}`, {
-            method: "POST",
-            body: formData
-        })
-        .then(res => res.text())
-        .then(msg => {
-            alert("✅ " + msg);
-            fetchReports(patientId);
-        })
-        .catch(err => console.error("❌ Upload error:", err));
-    });
-}
-
-// -------------------------
-// Search Patient
-// -------------------------
-const searchBtn = document.getElementById("search-btn");
-if (searchBtn) {
-    searchBtn.addEventListener("click", function () {
-        const name = document.getElementById("patient_name").value;
-        const patientIdInput = document.getElementById("patient_id").value;
-
-        fetch("/search_patient", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ patient_name: name, patient_id: patientIdInput })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error);
+            const patientId = document.getElementById("patientid")?.value;
+            if (!patientId) {
+                alert("⚠️ Please search and select a patient first!");
                 return;
             }
 
-            // ✅ Fill patient personal info
-            document.getElementById("patientid").value = data.id;
-            document.getElementById("firstname").value = data.first_name;
-            document.getElementById("lastname").value = data.last_name;
-            document.getElementById("email").value = data.email;
-            document.getElementById("contact").value = data.phone;
-            document.getElementById("dob").value = data.dob;
-            document.getElementById("gender").value = data.gender;
-            document.getElementById("address").value = data.address;
-            document.getElementById("nic").value = data.nic;
-            document.getElementById("maritalstatus").value = data.marital_status;
+            const formData = new FormData();
+            formData.append("file", file);
 
-            // ✅ Load reports
-            fetchReports(data.id);
-        })
-        .catch(err => console.error("❌ Search error:", err));
-    });
-}
-// -------------------------
-// Fetch Reports (helper)
-// -------------------------
-function fetchReports(patientId) {
-    fetch(`/get_patient_data/${patientId}`)
-        .then(res => res.json())
-        .then(data => {
-            let reportList = document.querySelector(".report-list");
-            reportList.innerHTML = ""; // clear old list
+            fetch(`/upload_report/${patientId}`, {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.text())
+            .then(msg => {
+                alert("✅ " + msg);
+                fetchReports(patientId);
+            })
+            .catch(err => console.error("❌ Upload error:", err));
+        });
+    }
 
-            const reports = data.reports; // ✅ Extract reports array
+    // -------------------------
+    // Search Patient
+    // -------------------------
+    const searchBtn = document.getElementById("search-btn");
+    if (searchBtn) {
+        searchBtn.addEventListener("click", function () {
+            const name = document.getElementById("patient_name")?.value || "";
+            const patientIdInput = document.getElementById("patient_id")?.value || "";
 
-            if (!reports || reports.length === 0) {
-                reportList.innerHTML = "<p>No reports uploaded yet.</p>";
-                return;
-            }
+            fetch("/search_patient", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({ patient_name: name, patient_id: patientIdInput })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                // Map backend keys to input IDs
+                const fieldMap = {
+                    patientid: "id",
+                    firstname: "first_name",
+                    lastname: "last_name",
+                    maritalstatus: "marital_status",
+                    email: "email",
+                    phone: "phone",
+                    dob: "dob",
+                    gender: "gender",
+                    address: "address",
+                    nic: "nic"
+                };
+
+                Object.keys(fieldMap).forEach(inputId => {
+                    const el = document.getElementById(inputId);
+                    if (el) el.value = data[fieldMap[inputId]] ?? "";
+                });
+
+                // Load patient reports
+                fetchReports(data.id);
+            })
+            .catch(err => console.error("❌ Search error:", err));
+        });
+    }
+
+    // -------------------------
+    // Fetch Reports
+    // -------------------------
+    function fetchReports(patientId) {
+        fetch(`/get_patient_data/${patientId}`)
+            .then(res => res.json())
+            .then(data => {
+                const reportList = document.querySelector(".report-list");
+                if (!reportList) return;
+
+                reportList.innerHTML = "";
+                const reports = data.reports || [];
+
+                if (reports.length === 0) {
+                    reportList.innerHTML = "<p>No reports uploaded yet.</p>";
+                    return;
+                }
 
                 reports.forEach(report => {
-                let newRow = document.createElement("div");
-                newRow.classList.add("report-row");
-
-                newRow.innerHTML = `
-                    <i class="bi bi-file-earmark-text"></i> ${report.file_name}
-                    <a href="/view_report/${report.id}" target="_blank">
-                        <i class="bi bi-eye"></i>
-                    </a>
-                    <a href="${report.file_url}" download>
-                        <i class="bi bi-download"></i>
-                    </a>
-                `;
-
-                reportList.appendChild(newRow);
-            });
-        })
-        .catch(err => console.error("❌ Report fetch error:", err));
-}
-
-function updateRegisteredCount() {
-    fetch("/get_registered_count")
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Server error: " + response.status);
-            }
-            return response.json();
-        })
-        .then(data => {
-            document.getElementById("registeredCount").innerText = data.count ?? 0;
-        })
-        .catch(err => {
-            console.error("Error fetching count:", err);
-            document.getElementById("registeredCount").innerText = "0"; // fallback
-        });
-}
-
-// Refresh every 1 second
-//setInterval(updateRegisteredCount, 6000);
-
-// Run once immediately when page loads
-updateRegisteredCount();
-
-function savePatient() {
-    let patientId = document.getElementById("patientid").value;
-
-    let updatedData = {};
-
-    // check each field before adding
-    if (document.getElementById("dob").value) {
-        updatedData.dob = document.getElementById("dob").value;
-    }
-    if (document.getElementById("firstname").value) {
-        updatedData.first_name = document.getElementById("firstname").value;
-    }
-    if (document.getElementById("maritalstatus").value) {
-        updatedData.marital_status = document.getElementById("maritalstatus").value;
-    }
-    if (document.getElementById("lastname").value) {
-        updatedData.last_name = document.getElementById("lastname").value;
-    }
-    if (document.getElementById("email").value) {
-        updatedData.email = document.getElementById("email").value;
-    }
-    if (document.getElementById("gender").value) {
-        updatedData.gender = document.getElementById("gender").value;
-    }
-    if (document.getElementById("address").value) {
-        updatedData.address = document.getElementById("address").value;
-    }
-    if (document.getElementById("nic").value) {
-        updatedData.nic = document.getElementById("nic").value;
-    }
-    if (document.getElementById("contact").value) {
-        updatedData.contact = document.getElementById("contact").value;
+                    const newRow = document.createElement("div");
+                    newRow.classList.add("report-row");
+                    newRow.innerHTML = `
+                        <i class="bi bi-file-earmark-text"></i> ${report.file_name}
+                        <a href="/view_report/${report.id}" target="_blank">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="${report.file_url}" download>
+                            <i class="bi bi-download"></i>
+                        </a>
+                    `;
+                    reportList.appendChild(newRow);
+                });
+            })
+            .catch(err => console.error("❌ Report fetch error:", err));
     }
 
-    fetch(`/update_patient/${patientId}`, {
-        method: "POST",   // or PUT if you prefer REST style
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(updatedData)
+    // -------------------------
+    // Update Registered Count
+    // -------------------------
+    function updateRegisteredCount() {
+        fetch("/get_registered_count")
+            .then(res => res.json())
+            .then(data => {
+                const el = document.getElementById("registeredCount");
+                if (el) el.innerText = data.count ?? 0;
+            })
+            .catch(err => console.error("Error fetching count:", err));
+    }
+
+    updateRegisteredCount();
+    // Optional: refresh every 6 seconds
+    // setInterval(updateRegisteredCount, 6000);
+
+    // -------------------------
+    // Save Patient
+    // -------------------------
+  function savePatient() {
+  const patientId = document.getElementById("patientid").value;
+
+  if (!patientId) {
+    alert("⚠️ No patient loaded!");
+    return;
+  }
+
+  // Collect values from form  
+  const firstName = document.getElementById("firstname").value;
+  const lastName = document.getElementById("lastname").value;
+  const maritalStatus = document.getElementById("maritalstatus").value;
+  const email = document.getElementById("email").value;
+  const gender = document.getElementById("gender").value;
+  const address = document.getElementById("address").value;
+  const nic = document.getElementById("nic").value;
+  const phone = document.getElementById("phone").value;
+
+  // Prepare payload
+  const updatedData = {   
+    first_name: firstName,
+    last_name: lastName,
+    marital_status: maritalStatus,
+    email: email,
+    gender: gender,
+    address: address,
+    nic: nic,
+    phone: phone,
+  };
+
+  console.log("Sending update for patientId:", patientId, updatedData);
+
+  fetch(`/update_patients/${patientId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updatedData),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.error) {
+        alert("❌ " + data.error);
+      } else {
+        alert("✅ Patient updated successfully!");
+      }
     })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message || "Updated successfully!");
-        // refresh patient info after saving
-        fetchPatientData(patientId);
-    })
-    .catch(err => console.error("Update failed:", err));
+    .catch((err) => {
+      console.error("Update failed:", err);
+      alert("⚠️ Something went wrong while updating patient.");
+    });
 }
+
+
 
 

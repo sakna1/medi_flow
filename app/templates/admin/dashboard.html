@@ -63,27 +63,7 @@
     </nav>
      <div id="popupOverlay"></div>
 
-<main class="dashboard-container">
-
-  <!-- Filters and Actions -->
-  <div class="filters">
-    <select>
-      <option>Dr. Ravi</option>
-      <option>Dr. Anil</option>
-    </select>
-
-    <select>
-      <option>Room 01</option>
-      <option>Room 02</option>
-    </select>
-
-    <input type="date" value="2025-03-05">
-    <span>to</span>
-    <input type="date" value="2025-12-05">
-
-    <button class="generate-btn">Generate Report</button>
-  </div>
-
+<main class="dashboard-container">  
   <!-- Action Cards -->
   <div class="container">
       <div class="cards">
@@ -114,67 +94,42 @@
   <!-- Charts Section -->
   <div class="charts">
     <div class="chart-box"> <!-- You can replace with Chart.js later -->
-      <h3>Patient Count per month</h3>
-      <canvas id="clinicChart"></canvas>
+      <h3>Top Disease per Month</h3>
+      <canvas id="topDiseaseChart"></canvas>
     </div>
     <div class="chart-box">
-      <h3>Daily Patient Flow</h3>
-      <canvas id="flowChart"></canvas>
+      <h3>Monthly Patient Flow</h3>
+      <canvas id="patientCountChart"></canvas>
     </div>
     <div class="chart-box">
       <h3>Treatment Status Distribution</h3>
-      <canvas id="statusChart"></canvas>
+      <canvas id="treatmentChart"></canvas>
     </div>
   </div>
 
-  <!-- Detailed Report Table -->
-  <section class="report-section">
-    <div class="report-header">
-      <h3>Detailed Report</h3>
-      <div class="export-icons">
-        <button>🖨️ Print</button>
-        <button>📄 PDF</button>
-        <button>📊 Excel</button>
-      </div>
+  <div id="demographicsContainer">
+     <h2>Patient Demographics Report</h2>
+    <!-- Filters -->
+    <div id="filters">
+        <label>Start Date: <input type="date" id="startDate"></label>
+        <label>End Date: <input type="date" id="endDate"></label>
+        <button onclick="loadDemographicsReport()">Load Report</button>
     </div>
-    <table class="report-table">
+
+    <!-- Age Chart -->
+    <canvas id="ageChart"></canvas>
+
+    <!-- Top Diseases Table -->
+    <table border="1" id="diseaseTable">
       <thead>
-        <tr>
-          <th>Patient Name</th>
-          <th>NIC/IOR Code</th>
-          <th>Clinic</th>
-          <th>Assigned Doctor</th>
-          <th>Treatment Status</th>
-          <th>Visit Date</th>
-          <th>Next Appointment</th>
-        </tr>
+        <tr><th>Disease</th><th>Number of Patients</th></tr>
       </thead>
-      <tbody>
-        <tr>
-          <td>Arun Silva</td>
-          <td>3724367990</td>
-          <td>OPD</td>
-          <td>Dr. Ravi</td>
-          <td>Ongoing</td>
-          <td>Apr 1, 2024</td>
-          <td>-</td>
-        </tr>
-        <tr>
-          <td>Basani Fernando</td>
-          <td>87245324C</td>
-          <td>Oncology</td>
-          <td>Dr. Ravi</td>
-          <td>Completed</td>
-          <td>Apr 1, 2024</td>
-          <td>-</td>
-        </tr>
-        <!-- Add more rows as needed -->
-      </tbody>
+      <tbody></tbody>
     </table>
-  </section>
+</div>  
 </main>   
 
-  </div> <!-- END Page Wrapper -->
+</div> <!-- END Page Wrapper -->
 
   <!-- Footer -->
   <footer class="footer">
@@ -193,5 +148,7 @@
   <script src="{{ url_for('static', filename='js/script.js') }}"></script> 
   <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script> 
   <script src="{{ url_for('static', filename='js/adminprofile.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </body>
 </html>

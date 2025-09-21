@@ -111,4 +111,48 @@
   }
 }
 
+/* Container for chart and table */
+#demographicsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 700px;    
+    margin-left: 0%;
+}
+
+/* Make chart smaller */
+#ageChart {
+    max-width: 100%;
+    height: 250px !important;
+}
+
+/* Style table */
+#diseaseTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+}
+
+#diseaseTable th, #diseaseTable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+#diseaseTable th {
+    background-color: #4CAF50; /* Change table header color */
+    color: white;
+}
+
+#diseaseTable tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#diseaseTable tr:hover {
+    background-color: #ddd;
+}
+
+
+
+
 

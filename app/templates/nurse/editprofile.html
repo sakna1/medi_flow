@@ -54,7 +54,7 @@
       <div id="popupBox" class="popup-box">
         <h3>Account</h3>
         <form>          
-          <div><label><a href="{{ url_for('auth.logout')}}">Logout</a></label></div>
+         <div><label><a href="{{ url_for('auth.logout')}}">Logout</a></label></div>
         </form>
       </div>    
           <i class="bi bi-person-circle fs-5"></i>
@@ -104,10 +104,10 @@
       <label>NIC</label>
       <input type="text" id="nic"/>
       <label>Contact Number</label>
-      <input type="text" id="contact"/>
+      <input type="text" id="phone"/>
     </div>
      <div class="save-btn-wrapper">
-    <button class="save-btn" onclick="savePatient()">Save</button>
+    <button type="button" class="save-btn" onclick="savePatient()">Save</button>
     </div>
   </div>
 </section>
@@ -138,6 +138,7 @@
 
   <!-- Scripts -->
   <script src="{{ url_for('static', filename='js/file_upload.js') }}"></script>   
-  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>  
 </body>
 </html>

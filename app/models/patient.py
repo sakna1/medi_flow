@@ -8,7 +8,7 @@ class Patient(db.Model, UserMixin):
     __tablename__ = 'patient'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
+    email = db.Column(db.String(120), nullable=False)
     password_hash = db.Column(db.String(), nullable=False)
     first_name = db.Column(db.String(100))
     last_name = db.Column(db.String(100))
@@ -23,9 +23,8 @@ class Patient(db.Model, UserMixin):
     marital_status = db.Column(db.String(20))  
     emergency_contact_name = db.Column(db.String(100))    
     emergency_phone = db.Column(db.String(20))    
-    nic = db.Column(db.String(20), unique=True)
-    registered_at = db.Column(db.DateTime, default=datetime.utcnow)
-    age = db.Column(db.Integer)
+    nic = db.Column(db.String(20),)
+    registered_at = db.Column(db.DateTime, default=datetime.utcnow)    
     treatment_type = db.Column(db.String(50))  
     next_appointment_date = db.Column(db.Date)
 

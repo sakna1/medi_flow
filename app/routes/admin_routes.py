@@ -3,7 +3,8 @@ from flask_login import login_required, current_user
 from app.models import User, Patient , PatientLog
 from app import db
 from datetime import date
-from sqlalchemy import func
+from sqlalchemy import func, text
+import calendar
 
 admin = Blueprint('admin', __name__)
 
@@ -133,7 +134,7 @@ def search_user():
             "phone": user.phone
         })
     else:
-        return jsonify(None)
+        return jsonify(None) 
 
 # 💾 Update User
 @admin.route("/update_user/<int:user_id>", methods=["PATCH"])
@@ -170,5 +171,139 @@ def get_dashboard_counts():
         "appointments_today": appointments_count,
         "ongoing_treatments": ongoing_treatments_count
     })
+@admin.route('/top-disease-monthly')
+def top_disease_monthly():
+    # Get numeric month (1–12), disease, count
+    results = (
+        db.session.query(
+            func.extract('month', Patient.registered_at).label('month'),
+            Patient.disease,
+            func.count(Patient.id).label('count')
+        )
+        .group_by('month', Patient.disease)
+        .all()
+    )
+
+    # Convert to dict: {month: {disease: count}}
+    month_data = {}
+    for r in results:
+        m = int(r.month)  # numeric month
+        if m not in month_data:
+            month_data[m] = {}
+        month_data[m][r.disease] = r.count
+
+    # For each month, get top disease
+    final = []
+    for m, diseases in sorted(month_data.items()):
+        top_disease = max(diseases, key=diseases.get)
+        final.append({
+            "month": calendar.month_name[m],  # convert 4 → "April"
+            "disease": top_disease,
+            "count": diseases[top_disease]
+        })
+
+    return jsonify(final)
+
+@admin.route('/dashboard-stats')
+def dashboard_stats():
+    # 1. Patient Registrations per Month
+    registrations = (
+        db.session.query(
+            func.to_char(Patient.registered_at, 'FMMonth').label('month'),
+            func.date_trunc('month', Patient.registered_at).label('month_order'),
+            func.count(Patient.id).label('count')
+        )
+        .group_by('month', 'month_order')
+        .order_by('month_order')
+        .all()
+    )
+
+    reg_data = [{"month": r.month.strip(), "count": r.count} for r in registrations]
+
+    # 2. Treatment counts per Month
+    treatments = (
+        db.session.query(
+            func.to_char(Patient.registered_at, 'FMMonth').label('month'),
+            func.date_trunc('month', Patient.registered_at).label('month_order'),
+            Patient.treatment_type,
+            func.count(Patient.id).label('count')
+        )
+        .group_by('month', 'month_order', Patient.treatment_type)
+        .order_by('month_order')
+        .all()
+    )
+
+    # Structure: month → { treatment_type: count }
+    month_data = {}
+    for r in treatments:
+        m = r.month.strip()
+        if m not in month_data:
+            month_data[m] = {}
+        month_data[m][r.treatment_type] = r.count
+
+    treatment_data = [{"month": m, "treatments": t} for m, t in month_data.items()]
+
+    # Return everything together
+    return jsonify({
+        "registrations": reg_data,
+        "treatments": treatment_data
+    })
+
+@admin.route('/report/patient-demographics', methods=['GET'])
+def patient_demographics():
+    # Get date range from query params
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    # Query for age groups
+    
+    age_groups = [
+        ('0-10', 0, 10),
+        ('11-20', 11, 20),
+        ('21-30', 21, 30),
+        ('31-40', 31, 40),
+        ('41-50', 41, 50),
+        ('51-60', 51, 60),
+        ('60+', 61, 200)
+    ]
+
+    age_counts = []
+
+    for label, min_age, max_age in age_groups:
+        query = Patient.query
+
+        # Filter by date range if provided
+        if start_date and end_date:
+            query = query.filter(Patient.registered_at.between(start_date, end_date))
+
+        # Use PostgreSQL interval to calculate DOB range
+        query = query.filter(
+            Patient.dob.between(
+                func.now() - text(f"interval '{max_age} years'"),
+                func.now() - text(f"interval '{min_age} years'")
+            )
+        )
+
+        count = query.count()
+        age_counts.append({'age_group': label, 'count': count})
+
+    # Query top 5 diseases
+    disease_counts_query = Patient.query
+    if start_date and end_date:
+        disease_counts_query = disease_counts_query.filter(Patient.registered_at.between(start_date, end_date))
+    disease_counts = (
+        disease_counts_query
+        .with_entities(Patient.disease, func.count(Patient.id).label('count'))
+        .group_by(Patient.disease)
+        .order_by(func.count(Patient.id).desc())
+        .limit(5)
+        .all()
+    )
+    top_diseases = [{'disease': d.disease, 'count': d.count} for d in disease_counts]
+
+    return jsonify({'age_groups': age_counts, 'top_diseases': top_diseases})
+
+
+
 
 

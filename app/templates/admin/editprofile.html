@@ -80,7 +80,7 @@
       <label>User ID</label>
       <input type="text" id="userid"/>
       <label>Date of Birth</label>
-      <input type="date" id="dob"  />
+      <input type="date" id="dob"  readonly/>
     </div>
     <div class="form-row">
       <label>First Name</label>
@@ -102,7 +102,7 @@
     </div>
     <div class="form-row">
       <label>NIC</label>
-      <input type="text" id="nic"/>
+      <input type="text" id="nic" readonly/>
       <label>Contact Number</label>
       <input type="text" id="contact"/>
     </div>
@@ -133,6 +133,6 @@
   <!-- Scripts -->
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
   <script src="{{ url_for('static', filename='js/adminprofile.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>  
+  
 </body>
 </html>

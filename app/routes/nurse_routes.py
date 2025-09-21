@@ -7,7 +7,7 @@ from flask import current_app
 import os
 from werkzeug.utils import secure_filename
 from flask import url_for, send_from_directory
-from datetime import date
+from datetime import date ,datetime
 from sqlalchemy import func
 
 nurse = Blueprint('nurse', __name__)
@@ -132,29 +132,32 @@ def get_registered_count():
     count = Patient.query.filter(func.date(Patient.registered_at) == today).count()
     return jsonify({"count": count})
 
-@nurse.route('/update_patient/<int:patient_id>', methods=['POST'])
+@nurse.route("/update_patients/<int:patient_id>", methods=["POST"])
 def update_patient(patient_id):
-    data = request.json
+    data = request.get_json(force=True, silent=False)
+    print("DEBUG:", data)
+    print("Update payload received:", data)
+
     patient = Patient.query.get(patient_id)
     if not patient:
         return jsonify({"error": "Patient not found"}), 404
 
-    # Helper: replace "" with None
-    def clean(value):
-        return value if value not in ["", None] else None
-
-    patient.dob = clean(data.get("dob"))   # ensures empty string won't break DATE field
-    patient.first_name = clean(data.get("first_name"))
-    patient.marital_status = clean(data.get("marital_status"))
-    patient.last_name = clean(data.get("last_name"))
-    patient.email = clean(data.get("email"))
-    patient.gender = clean(data.get("gender"))
-    patient.address = clean(data.get("address"))
-    patient.nic = clean(data.get("nic"))
-    patient.phone = clean(data.get("phone"))
-
+    # Handle other fields
+    patient.first_name = data.get("first_name")
+    patient.last_name = data.get("last_name")
+    patient.marital_status = data.get("marital_status")
+    patient.email = data.get("email")
+    patient.gender = data.get("gender")
+    patient.address = data.get("address")
+    patient.nic = data.get("nic")
+    patient.phone = data.get("phone")    
     db.session.commit()
-    return jsonify({"message": "Patient updated successfully"})
+
+    return jsonify({"message": "Patientrtry updated successfully!"}), 200
+
+
+
+
 
 
 
