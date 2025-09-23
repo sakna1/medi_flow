@@ -303,6 +303,33 @@ def patient_demographics():
 
     return jsonify({'age_groups': age_counts, 'top_diseases': top_diseases})
 
+@admin.route("/staff-workload-report")
+def staff_workload_report():
+    # Optional: allow filtering by start_date and end_date (scan_time)
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    query = (
+        db.session.query(
+            User.first_name,
+            func.count(PatientLog.id).label("patients")
+        )
+        .join(PatientLog, PatientLog.doctor_id == User.id)
+        .filter(User.role == "Doctor")
+    )
+
+    # Apply date filter if provided
+    if start_date and end_date:
+        query = query.filter(PatientLog.scan_time.between(start_date, end_date))
+
+    query = query.group_by(User.first_name)
+
+    data = query.all()
+
+    return jsonify([
+        {"doctor": d[0], "patients": d[1]} for d in data
+    ])
+
 
 
 

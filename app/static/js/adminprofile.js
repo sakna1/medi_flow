@@ -155,11 +155,21 @@ fetch('/top-disease-monthly')
             });
 
             // Prepare datasets for each treatment type
+            let darkMatteColors = [
+                "#374151", // Charcoal Gray
+                "#4B5563", // Dark Slate
+                "#1F2937", // Deep Gray
+                "#6B21A8", // Matte Purple
+                "#1E3A8A", // Matte Navy
+                "#065F46", // Matte Green
+                "#92400E", // Burnt Orange
+                "#7F1D1D"  // Deep Red
+            ];
             let datasets = treatmentTypes.map((tt, idx) => {
                 return {
                     label: tt,
                     data: data.treatments.map(t => t.treatments[tt] || 0),
-                    backgroundColor: `hsl(${(idx * 60) % 360}, 70%, 60%)`
+                    backgroundColor: darkMatteColors[idx % darkMatteColors.length]
                 };
             });
 
@@ -226,8 +236,8 @@ function renderAgeChart(ageGroups) {
             datasets: [{
                 label: 'Number of Patients',
                 data: ageGroups.map(a => a.count),
-                backgroundColor: 'rgba(255, 99, 132, 0.7)', // Change bar color
-                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: '#6B21A8', // Change bar color
+                borderColor: '#6B21A8',
                 borderWidth: 1
             }]
         },
@@ -257,6 +267,64 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDemographicsReport();
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+        loadStaffWorkloadReport();
+    });
+
+async function loadStaffWorkloadReport() {
+    try {
+        const response = await fetch("/staff-workload-report");
+        const data = await response.json();
+
+        // Clear old content
+        document.getElementById("staffWorkloadTableBody").innerHTML = "";
+
+        // Insert table rows
+        data.forEach((item, index) => {
+            let row = `
+                <tr>                   
+                    <td>${item.doctor}</td>
+                    <td>${item.patients}</td>
+                </tr>
+            `;
+            document.getElementById("staffWorkloadTableBody").innerHTML += row;
+        });
+
+        // Chart.js Pie Chart
+        const ctx = document.getElementById("staffWorkloadChart").getContext("2d");
+        if (window.staffWorkloadChartInstance) {
+            window.staffWorkloadChartInstance.destroy(); // prevent duplicate charts
+        }
+        window.staffWorkloadChartInstance = new Chart(ctx, {
+            type: "bar",  // you can also use "pie" or "doughnut"
+            data: {
+                labels: data.map(item => item.doctor),
+                datasets: [{
+                    label: "Patients",
+                    data: data.map(item => item.patients),
+                    backgroundColor: [
+                        "#4B5563", "#1F2937"
+                    ],
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false,
+                        position: "top",
+                    },
+                    title: {
+                        display: false,                        
+                    }
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error("Error loading staff workload report:", error);
+    }
+}
 
 
 

@@ -107,26 +107,55 @@
     </div>
   </div>
 
-  <div id="demographicsContainer">
-     <h2>Patient Demographics Report</h2>
-    <!-- Filters -->
-    <div id="filters">
-        <label>Start Date: <input type="date" id="startDate"></label>
-        <label>End Date: <input type="date" id="endDate"></label>
-        <button onclick="loadDemographicsReport()">Load Report</button>
-    </div>
+ <div style="display: flex; gap: 20px; align-items: flex-start;">
+    
+  <!-- Patient Demographics -->
+  <div id="demographicsContainer" style="flex: 1;">
+     <h3 id ="reporth3">Patient Demographics Report</h3>
+     <!-- Filters -->
+     <div id="filters">
+         <label id="reportlbl">Start Date: <input type="date" id="startDate"></label>
+         <label id="reportlbl">End Date: <input type="date" id="endDate"></label>
+         <button id="loadreport" onclick="loadDemographicsReport()">Load Report</button>
+     </div>
 
-    <!-- Age Chart -->
-    <canvas id="ageChart"></canvas>
+     <!-- Age Chart -->
+     <canvas id="ageChart"></canvas>
 
-    <!-- Top Diseases Table -->
-    <table border="1" id="diseaseTable">
-      <thead>
-        <tr><th>Disease</th><th>Number of Patients</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-</div>  
+     <!-- Top Diseases Table -->
+     <table border="1" id="diseaseTable">
+       <thead>
+         <tr><th>Disease</th><th>Number of Patients</th></tr>
+       </thead>
+       <tbody></tbody>
+     </table>
+  </div>  
+
+  <!-- Staff Workload -->
+  <div id="demographicsContainer" style="flex: 1;">
+     <h3 id ="reporth3">Staff Workload Report</h3>
+
+      <div id="filters">
+         <label id="reportlbl">Start Date: <input type="date" id="startDate"></label>
+         <label id="reportlbl">End Date: <input type="date" id="endDate"></label>
+         <button id="loadreport"onclick="loadStaffWorkloadReport()">Load Report</button>
+     </div>
+     <canvas id="staffWorkloadChart" width="400" height="200"></canvas>
+
+     <table border="1" id="diseaseTable">
+         <thead>
+             <tr>                 
+                 <th>Doctor</th>
+                 <th>Patients</th>
+             </tr>
+         </thead>
+         <tbody id="staffWorkloadTableBody"></tbody>
+     </table>
+  </div>  
+
+</div>
+
+
 </main>   
 
 </div> <!-- END Page Wrapper -->
