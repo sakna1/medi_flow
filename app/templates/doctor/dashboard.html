@@ -73,39 +73,35 @@
 
     <!-- Cards Section -->
     <div class="container">
-      <div class="cards">
-        <div class="card">
-          <div class="card-icon"><i class="bi bi-calendar-event"></i></div>
-          <h3>Today's Appointment</h3>
-          <p>08</p>        
-        </div>
-        <div class="card">
-          <div class="card-icon"><i class="bi bi-list-task"></i></div>
-          <h3>Next Appointment</h3>
-          <p>Patient Id - P001</p>
-          <p>Time - 08.00 - 08.30</p>
-        </div>
-        <div class="card">
-          <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
-          <h3>Completed Appointments</h3>
-          <p>05</p>
-        </div>
-        <div class="card">
-          <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
-          <h3>Hospital Updates</h3>
-          <p>Radiology Unit closed on July 5th</p>
-        </div>
-      </div>   
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon"><i class="bi bi-calendar-event"></i></div>
+      <h3>Today's Appointment</h3>
+      <p id="todayAppointments">--</p>
     </div>
+    <div class="card">
+      <div class="card-icon"><i class="bi bi-list-task"></i></div>
+      <h3>Next Appointment</h3>
+      <p id="nextAppointment">Loading...</p>
+    </div>
+    <div class="card">
+      <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
+      <h3>Completed Appointments</h3>
+      <p id="completedAppointments">--</p>
+    </div>
+    <div class="card">
+      <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
+      <h3>Hospital Updates</h3>
+      <p id="hospitalUpdates">Loading...</p>
+    </div>
+  </div>
+</div>
 
 <div class="schedule-todo-section">
   <div class="schedule-card">
     <h3>🗓️ Today’s Schedule</h3>
-    <ul>
-      <li><strong>08:00 AM</strong> – Patient P001 <span class="tag">Check-up</span></li>
-      <li><strong>09:00 AM</strong> – Patient P002 <span class="tag">Follow-up</span></li>
-      <li><strong>10:30 AM</strong> – Patient P003 <span class="tag">Consultation</span></li>
-      <li><strong>01:00 PM</strong> – Patient P004 <span class="tag">Reports</span></li>
+    <ul id="doctorScheduleList">
+      
     </ul>
   </div>
 
@@ -141,10 +137,9 @@
   </footer>
 
   <!-- Scripts -->  
-  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/contact.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/Search.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>  
+  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script> 
+   <script src="{{ url_for('static', filename='js/doctorprofile.js') }}"></script> 
 
 </body>
 </html>

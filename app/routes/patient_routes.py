@@ -10,19 +10,36 @@ import pytz
 
 patient = Blueprint('patient', __name__)
 
+from flask import session
+from flask_login import current_user
+
 @patient.route('/user-login', methods=['GET', 'POST'])
 def user_login():
     if request.method == 'POST':
         identifier = request.form['username']
         password = request.form['password']
-        patient_id = Patient.query.filter((Patient.username == identifier) | (Patient.email == identifier)).first()
 
-        if patient_id and patient_id.check_password(password):
-            login_user(patient_id)
+        patient = Patient.query.filter((Patient.username == identifier) | (Patient.email == identifier)).first()
+        print("Patient object found:", patient)
+
+        if patient:
+            print("Checking password...")
+        else:
+            print("No patient found")
+
+        if patient and patient.check_password(password):
+            print("Password correct, logging in...")
+            login_user(patient)
+            print("User authenticated?", current_user.is_authenticated)
+            print("Session _user_id:", session.get('_user_id'))
             return redirect(url_for("patient.dashboard"))
 
+        print("Login failed")
         flash("Invalid login credentials.")
+
     return render_template('login.html')
+
+
 
 def get_patient_name():
     patient = Patient.query.filter(Patient.id == current_user.id).first()
