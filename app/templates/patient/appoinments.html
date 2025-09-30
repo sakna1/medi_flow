@@ -46,99 +46,45 @@
      <div id="popupOverlay"></div>
 
   <!-- Main Appointment Content -->
-  <main class="appointments-section">
-    <h2>Appointments</h2>
-
-    <div class="filters-bar">
-  <div class="filter-group">
-    <select>
-      <option>Select Doctor</option>
-    </select>
-    <label><input type="checkbox"> Hide visited</label>
-    <label><input type="checkbox" checked> Show empty</label>
-  </div>
-
-  <div class="filter-group">
-    <label>Start: <input type="date" value="2025-05-03"></label>
-    <label>End: <input type="date" value="2025-12-05"></label>
-    <select>
-      <option>June 1, 2025</option>
-    </select>
-  </div>
-
-  <div class="search-group">
-    <input type="text" placeholder="Search appointments...">
-    <i class="fa fa-search"></i>
-  </div>
-</div>
-
-    <table class="appointments-table">
-      <thead>
-        <tr>
-          <th><input type="checkbox" /></th>
-          <th>Time</th>
-          <th>Doctor Name</th>
-          <th>Room No</th>
-          <th>Status</th>
-          <th>Technician</th>
-          <th>Creator</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-      <td><input type="checkbox"></td>
-      <td colspan="6">&nbsp;</td>
-    </tr>
-    <tr>
-      <td><input type="checkbox"></td>
-      <td colspan="6">&nbsp;</td>
-    </tr>
-    <tr>
-      <td><input type="checkbox"></td>
-      <td colspan="6">&nbsp;</td>
-    </tr>
-    <tr>
-      <td><input type="checkbox"></td>
-      <td colspan="6">&nbsp;</td>
-    </tr>
-    <tr>
-      <td><input type="checkbox"></td>
-      <td colspan="6">&nbsp;</td>
-    </tr>
-    <tr>
-      <td><input type="checkbox"></td>
-      <td colspan="6">&nbsp;</td>
-    </tr>
-    <tr>
-      <td><input type="checkbox"></td>
-      <td colspan="6">&nbsp;</td>
-    </tr>
-    <tr>
-      <td><input type="checkbox"></td>
-      <td colspan="6">&nbsp;</td>
-    </tr>
-    <tr>
-      <td><input type="checkbox"></td>
-      <td colspan="6">&nbsp;</td>
-    </tr>
-    <tr>
-      <td><input type="checkbox"></td>
-      <td colspan="6">&nbsp;</td>
-    </tr>
-      </tbody>
-    </table>
-
-    <div class="pagination">
-      <label>Show on page
-        <select>
-          <option>10</option>
-          <option>20</option>
-        </select>
-      </label>
-      <span class="page-info">Page <strong>1</strong> of <strong>6</strong></span>
-      <span class="page-nav"> <i class="fas fa-angle-left"></i> ... <strong>1</strong> ... <i class="fas fa-angle-right"></i></span>
+<!-- Main Appointment Content -->
+<main class="appointments-section container mt-4"> 
+  <div class="d-flex justify-content-between align-items-center mb-3 filter-bar">
+    <!-- Search by patient, disease, or doctor -->
+    <div class="search-box w-100">
+      <input type="text" id="searchInput" class="form-control" placeholder="Search by doctor, or disease...">
     </div>
-  </main>
+
+    <!-- Date Range -->
+    <div class="date-range d-flex gap-2 align-items-center ms-3">
+      <label for="startDate" class="form-label me-2">From:</label>
+      <input type="date" id="startDate" class="form-control">
+
+      <label for="endDate" class="form-label ms-3 me-2">To:</label>
+      <input type="date" id="endDate" class="form-control">
+
+      <button class="btn btn-primary ms-2" id="filterBtn">Filter</button>
+    </div>
+  </div>
+
+  <!-- Past Appointments Table -->
+  <table class="table table-bordered" id="pastAppointmentsTable">
+    <thead>
+      <tr>
+        <th>Start Time</th>
+        <th>End Time</th>
+        <th>Doctor Name</th>        
+        <th>Treatment Status</th>
+        <th>Room No</th>
+        <th>Status</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- JS will insert rows -->
+    </tbody>
+  </table>
+</main>
+
 <a href="chatgpttest.html" class="back-btn">Back</a>
  
    <!-- Footer -->
@@ -154,9 +100,7 @@
       </div>
     </div>
   </footer>
-  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/contact.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/Search.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/paitentdashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/patient_appoinment.js') }}"></script>
 </body>
 </html>

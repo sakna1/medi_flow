@@ -81,9 +81,13 @@
       <div class="card">
         <div class="card-icon"><i class="bi bi-calendar-event"></i></div>
         <h3>Today's Appointment</h3>
-        <p>Clinic: Lakeside Medical Center</p>
-        <p>Date: July 02, 2024</p>
-        <p>Time: 2:00 PM</p>
+        <div id="today-card">
+        <p><b>Doctor : </b> Dr. <span id="todayClinic">Loading...</span></p>
+        <p><b>Date:</b> <span id="todayDate">Loading...</span></p>
+        <p><b>Time:</b> <span id="todayTime">Loading...</span></p>
+        <p><b>Room No:</b> <span id="todayRoom">Loading...</span></p>
+        <p><b>Queue No:</b> <span id="todayQueue">Loading...</span></p>
+      </div>
       </div>
       <div class="card">
         <div class="card-icon"><i class="bi bi-list-task"></i></div>
@@ -93,13 +97,15 @@
       <div class="card">
         <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
         <h3>Next Appointment Date</h3>
-        <p>August 15, 2024</p>
+        <div id="next-card">
+         <p><b>Date:</b> <span id="nextDate">Loading...</span></p>
+        </div>        
       </div>
       <div class="card">          
         <div class="qr-container">
-       <h3><span class="qr-title">QR Code</span></h3>
-      <img src="{{ url_for('patient.qr_code') }}" alt="Patient QR Code" class="qr-img" />
-      </div>
+          <h3><span class="qr-title">QR Code</span></h3>
+          <img src="{{ url_for('patient.qr_code') }}" alt="Patient QR Code" class="qr-img" />
+        </div>
       </div>
     </div>
     <!-- Slideshow -->
@@ -149,10 +155,7 @@
   </footer>
 
   <!-- JavaScript for Slideshow -->
-  <script src="{{ url_for('static', filename='js/patientdashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/paitentdashboard.js') }}"></script> 
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/contact.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/Search.js') }}"></script>
 </body>
 </html>

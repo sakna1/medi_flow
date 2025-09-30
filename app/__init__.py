@@ -5,6 +5,7 @@ from flask_login import LoginManager
 from config import Config
 from sqlalchemy_utils import database_exists, create_database
 import os
+from flask import session
 
 # Extensions
 db = SQLAlchemy()
@@ -48,8 +49,17 @@ def create_app():
     app.register_blueprint(nurse)
     app.register_blueprint(patient)
 
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
-
     return app
+
+   
+@login_manager.user_loader
+def load_user(user_id):
+    from app.models.user import User
+    from app.models.patient import Patient
+
+    if session.get("login_type") == "patient":
+        return Patient.query.get(int(user_id))
+    else:
+        return User.query.get(int(user_id))
+   
+   

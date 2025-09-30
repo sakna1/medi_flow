@@ -1,17 +1,17 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file,jsonify
 from flask_login import login_required, login_user, current_user
-from app.models import Patient , PatientLog
+from app.models import Patient , PatientLog , User
 import qrcode
 import io
 from zoneinfo import ZoneInfo
-from datetime import datetime, date, timezone
+from datetime import datetime, date, timezone 
+from sqlalchemy import cast, Date
 from app import db
 import pytz
-
+from flask_login import UserMixin
 patient = Blueprint('patient', __name__)
 
 from flask import session
-from flask_login import current_user
 
 @patient.route('/user-login', methods=['GET', 'POST'])
 def user_login():
@@ -19,41 +19,29 @@ def user_login():
         identifier = request.form['username']
         password = request.form['password']
 
-        patient = Patient.query.filter((Patient.username == identifier) | (Patient.email == identifier)).first()
-        print("Patient object found:", patient)
+        patient_id = Patient.query.filter(
+            (Patient.username == identifier) | (Patient.email == identifier)
+        ).first()
 
-        if patient:
-            print("Checking password...")
-        else:
-            print("No patient found")
-
-        if patient and patient.check_password(password):
-            print("Password correct, logging in...")
-            login_user(patient)
-            print("User authenticated?", current_user.is_authenticated)
-            print("Session _user_id:", session.get('_user_id'))
+        if patient_id and patient_id.check_password(password): 
+            login_user(patient_id)
+            session["login_type"] = "patient"   
             return redirect(url_for("patient.dashboard"))
-
-        print("Login failed")
-        flash("Invalid login credentials.")
-
+       
+        flash("Invalid login credentials.") 
+        return render_template('login.html')
+    
     return render_template('login.html')
-
-
-
-def get_patient_name():
-    patient = Patient.query.filter(Patient.id == current_user.id).first()
-    return patient.first_name if patient else ''
 
 @patient.route('/patient/dashboard')
 @login_required
 def dashboard():    
-    return render_template('patient/dashboard.html', user=get_patient_name())
+    return render_template('patient/dashboard.html', user=current_user.first_name)
 
 @patient.route('/patient/appoinments')
 @login_required
 def appoinments():    
-    return render_template('patient/appoinments.html',user=get_patient_name())
+    return render_template('patient/appoinments.html',user=current_user.first_name)
 
 @patient.route('/patient/contact')
 @login_required
@@ -63,12 +51,12 @@ def contact():
 @patient.route('/patient/faqpage')
 @login_required
 def faqpage():    
-    return render_template('patient/faqpage.html',user=get_patient_name())
+    return render_template('patient/faqpage.html',user=current_user.first_name)
 
 @patient.route('/patient/notification')
 @login_required
 def notification():    
-    return render_template('patient/notification.html',user=get_patient_name())
+    return render_template('patient/notification.html' ,user=current_user.first_name)
 
 @patient.route('/patient/dashboard/qr')
 @login_required
@@ -211,4 +199,110 @@ def save_note():
         }
     })
         
-    
+@patient.route('/dashboard/today-appointment')
+@login_required
+def api_today_appointment():
+    today_appointment = (
+    PatientLog.query
+    .filter(PatientLog.patient_id == current_user.id)
+    .filter(cast(PatientLog.scan_time, Date) == date.today())
+    .order_by(PatientLog.scan_time.desc())
+    .first()
+)
+    if not today_appointment:
+        return jsonify({"status": "none"})
+
+    return jsonify({
+        "clinic": today_appointment.doctor.first_name if today_appointment.doctor else "Unknown",
+        "date": today_appointment.scan_time.strftime("%B %d, %Y"),
+        "time": today_appointment.scan_time.strftime("%I:%M %p"),
+        "room_no": today_appointment.room_no or "Not Assigned",
+        "queue_number": today_appointment.queue_number or "Pending"
+    })
+
+@patient.route('/dashboard/next-appointment')
+@login_required
+def api_next_appointment():  
+    patient = Patient.query.filter_by(id=current_user.id).first()
+    if not patient or not patient.next_appointment_date:
+        return jsonify({"status": "none"})
+
+    return jsonify({
+        "date": patient.next_appointment_date.strftime("%B %d, %Y")
+    })
+
+
+@patient.route("/patient/past-appointments")
+@login_required
+def patient_past_appointments():
+    if not hasattr(current_user, "id"):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    today = datetime.now()
+    start_date = request.args.get("start")
+    end_date = request.args.get("end")
+    search = request.args.get("search", "").strip()
+
+    # base query
+    query = (
+        db.session.query(
+            PatientLog.id,
+            PatientLog.room_no,
+            PatientLog.start_time,
+            PatientLog.end_time,
+            PatientLog.status,
+            PatientLog.notes,
+            User.first_name.label("doctor_first"),
+            User.last_name.label("doctor_last"),
+            Patient.treatment_status
+        )
+        .join(Patient, PatientLog.patient_id == Patient.id)
+        .join(User, PatientLog.doctor_id == User.id)
+        .filter(
+            PatientLog.patient_id == current_user.id,
+            PatientLog.start_time.isnot(None),
+            PatientLog.start_time < today
+        )
+    )
+
+    # date filters
+    if start_date:
+        try:
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            query = query.filter(PatientLog.start_time >= start_dt)
+        except ValueError:
+            pass
+
+    if end_date:
+        try:
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            query = query.filter(PatientLog.start_time <= end_dt)
+        except ValueError:
+            pass
+
+    # search filter (doctor name or treatment_status)
+    if search:
+        query = query.filter(
+            db.or_(
+                User.first_name.ilike(f"%{search}%"),
+                User.last_name.ilike(f"%{search}%"),
+                Patient.treatment_status.ilike(f"%{search}%")
+            )
+        )
+
+    records = query.order_by(PatientLog.start_time.desc()).all()
+
+    data = []
+    for r in records:
+        data.append({
+            "log_id": r.id,
+            "doctor_name": f"{r.doctor_first} {r.doctor_last}",
+            "treatment_status": r.treatment_status,
+            "room_no": r.room_no,
+            "start_time": r.start_time.strftime("%Y-%m-%d %H:%M") if r.start_time else None,
+            "end_time": r.end_time.strftime("%Y-%m-%d %H:%M") if r.end_time else None,
+            "status": r.status,
+            "notes": r.notes
+        })
+
+    return jsonify(data)
