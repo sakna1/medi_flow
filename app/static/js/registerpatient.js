@@ -49,3 +49,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // Run on change
   roleSelect.addEventListener("change", toggleSections);
 });
+
+fetch('/api/diseases')
+    .then(res => res.json())
+    .then(data => {
+      const select = document.getElementById('disease');
+      select.innerHTML = '<option value="">-- Select Disease --</option>';
+      data.forEach(d => {
+        const option = document.createElement('option');
+        option.value = d.id;
+        option.textContent = d.name;
+        select.appendChild(option);
+      });
+    })
+    .catch(err => console.error("Error loading diseases:", err));

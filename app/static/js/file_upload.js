@@ -40,7 +40,7 @@
             const name = document.getElementById("patient_name")?.value || "";
             const patientIdInput = document.getElementById("patient_id")?.value || "";
 
-            fetch("/search_patient", {
+            fetch("/search_patientNurse", {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: new URLSearchParams({ patient_name: name, patient_id: patientIdInput })
@@ -166,7 +166,7 @@
 
   console.log("Sending update for patientId:", patientId, updatedData);
 
-  fetch(`/update_patients/${patientId}`, {
+  fetch(`/update_patients_Nurse/${patientId}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(updatedData),

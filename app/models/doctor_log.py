@@ -10,4 +10,4 @@ class DoctorLog(db.Model):
     room_no = db.Column(db.String(10), nullable=False)
 
     # relationship (if you have Doctor model defined)
-    doctor = db.relationship('User', foreign_keys=[doctor_id], backref='doctor_logs')
+    doctor = db.relationship('User', foreign_keys=[doctor_id], backref='doctor_activity_logs')

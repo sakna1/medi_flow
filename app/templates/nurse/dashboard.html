@@ -94,7 +94,13 @@
           <button id="start-scan" class="btn btn-primary">Scan</button>
           <div id="qr-reader" style="width: 70px; height: 70px;"></div>         
         </div>
-        
+
+        <div class="card">
+          <a href="{{ url_for('nurse.create_notification') }}" class="card-link">
+           <div class="card-icon"><i class="bi bi-calendar-event"></i></div>
+          <h3></a>New patient</h3>    
+        </div>
+        </a>
       </div>   
     </div>    
 

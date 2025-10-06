@@ -2,7 +2,7 @@ from flask import Blueprint, render_template,jsonify,request,session
 from flask_login import login_required
 from flask_login import current_user
 from app import db
-from app.models import Patient , PatientLog ,PatientReport
+from app.models import Patient , PatientLog ,PatientReport,DiseaseDesc
 from datetime import datetime,date
 from flask import url_for, send_from_directory
 from sqlalchemy import cast, Date
@@ -88,24 +88,6 @@ def update_patient(patient_id):
 
     return jsonify({"message": "Patient updated successfully!"}), 200
 
-@doctor.route("/get_patient_reports/<int:patient_id>", methods=["GET"])
-def get_patient_reports(patient_id):
-    reports = PatientReport.query.filter_by(patient_id=patient_id).all()
-    if not reports:
-        return jsonify({"reports": []})
-
-    report_list = [
-        {
-            "id": r.id,
-            "report_name": r.report_name,
-            "file_path": r.file_path,
-            "uploaded_at": r.uploaded_at.strftime("%Y-%m-%d %H:%M")
-        }
-        for r in reports
-    ]
-
-    return jsonify({"reports": report_list})
-
 @doctor.route("/doctor/past-appointments")
 @login_required
 def doctor_past_appointments():
@@ -115,6 +97,7 @@ def doctor_past_appointments():
 
     today = datetime.now()
 
+    # Join PatientLog + Patient + DiseaseDesc
     records = (
         db.session.query(
             PatientLog.id,
@@ -126,10 +109,11 @@ def doctor_past_appointments():
             PatientLog.notes,
             Patient.first_name,
             Patient.last_name,
-            Patient.disease,
+            DiseaseDesc.name.label("disease_name"),
             Patient.treatment_status,
         )
         .join(Patient, PatientLog.patient_id == Patient.id)
+        .outerjoin(DiseaseDesc, Patient.disease_id == DiseaseDesc.id)
         .filter(
             PatientLog.doctor_id == doctor_id,
             PatientLog.start_time != None,
@@ -145,8 +129,8 @@ def doctor_past_appointments():
             "log_id": r.id,
             "patient_id": r.patient_id,
             "patient_name": f"{r.first_name} {r.last_name}",
-            "disease": r.disease,
-            "treatment_status": r.treatment_status,
+            "disease": r.disease_name or "-",  # show disease name
+            "treatment_status": r.treatment_status or "-",
             "room_no": r.room_no,
             "start_time": r.start_time.strftime("%Y-%m-%d %H:%M") if r.start_time else "-",
             "end_time": r.end_time.strftime("%Y-%m-%d %H:%M") if r.end_time else "-",
@@ -155,6 +139,7 @@ def doctor_past_appointments():
         })
 
     return jsonify(data)
+
 
 @doctor.route("/dashboard-data", methods=["GET"])
 def dashboard_data():

@@ -16,7 +16,7 @@ class Patient(db.Model, UserMixin):
     gender = db.Column(db.String(10))
     address = db.Column(db.String(200))
     phone = db.Column(db.String(20))
-    disease = db.Column(db.String(200))
+    disease_id = db.Column(db.Integer, db.ForeignKey('disease_desc.id'), nullable=True)
     description = db.Column(db.Text) 
     blood_type = db.Column(db.String(5))  
     treatment_status = db.Column(db.String(20)) 

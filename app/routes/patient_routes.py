@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file,jsonify
 from flask_login import login_required, login_user, current_user
-from app.models import Patient , PatientLog , User
+from app.models import Patient , PatientLog , User ,DiseaseDesc
 import qrcode
 import io
 from zoneinfo import ZoneInfo
@@ -96,26 +96,32 @@ def search_patient():
 
     result = query.first()
 
-    if result:
-        return jsonify({
-            "id": result.id,
-            "first_name": result.first_name,
-            "last_name": result.last_name,
-            "email": result.email,
-            "phone": result.phone,
-            "dob": result.dob.strftime("%Y-%m-%d") if result.dob else "",
-            "gender": result.gender,
-            "address": result.address,
-            "nic": result.nic,
-            "marital_status": result.marital_status,
-            "disease": result.disease,
-            "description": result.description,
-            "treatment_status": result.treatment_status,
-            "blood_type": result.blood_type,
-            "treatment_type": result.treatment_type
-        })
-    else:
+    if not result:
         return jsonify({"error": "No patient found"})
+
+    # ✅ Get disease name from DiseaseDesc table
+    disease_name = None
+    if result.disease_id:
+        disease = DiseaseDesc.query.get(result.disease_id)
+        disease_name = disease.name if disease else None
+
+    return jsonify({
+        "id": result.id,
+        "first_name": result.first_name,
+        "last_name": result.last_name,
+        "email": result.email,
+        "phone": result.phone,
+        "dob": result.dob.strftime("%Y-%m-%d") if result.dob else "",
+        "gender": result.gender,
+        "address": result.address,
+        "nic": result.nic,
+        "marital_status": result.marital_status,
+        "disease_name": disease_name,  
+        "description": result.description,
+        "treatment_status": result.treatment_status,
+        "blood_type": result.blood_type,
+        "treatment_type": result.treatment_type
+    })
     
 
 @patient.route("/visit-history/<int:patient_id>", methods=["GET"])

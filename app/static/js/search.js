@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById("maritalstatus").value = data.marital_status;
 
       // Fill medical info
-      document.getElementById("disease").value = data.disease;
+      document.getElementById("disease_name").value = data.disease_name || ""; 
       document.getElementById("description").value = data.description;
       document.getElementById("treatmentstatus").value = data.treatment_status;
       document.getElementById("bloodtype").value = data.blood_type;

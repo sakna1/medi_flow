@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash,jsonify
 from flask_login import login_required, current_user
-from app.models import User, Patient , PatientLog
+from app.models import User, Patient , PatientLog ,DiseaseDesc
 from app import db
 from datetime import date
 from sqlalchemy import func, text
 import calendar
+from sqlalchemy.orm import aliased
 
 admin = Blueprint('admin', __name__)
 
@@ -68,7 +69,7 @@ def register_user():
                 marital_status=request.form.get('marital_status'),
                 address=request.form.get('address'),
                 nic=request.form.get('nic'),
-                disease=request.form.get('disease'),
+                disease_id=request.form.get('disease'),
                 description=request.form.get('disease_description'),
                 blood_type=request.form.get('blood'),
                 treatment_status=request.form.get('treatment_status'),
@@ -173,24 +174,25 @@ def get_dashboard_counts():
     })
 @admin.route('/top-disease-monthly')
 def top_disease_monthly():
-    # Get numeric month (1–12), disease, count
+    # Join Patient with DiseaseDesc to get disease name
     results = (
         db.session.query(
             func.extract('month', Patient.registered_at).label('month'),
-            Patient.disease,
+            DiseaseDesc.name.label('disease_name'),
             func.count(Patient.id).label('count')
         )
-        .group_by('month', Patient.disease)
+        .join(DiseaseDesc, Patient.disease_id == DiseaseDesc.id)  # join on disease_id
+        .group_by('month', DiseaseDesc.name)
         .all()
     )
 
-    # Convert to dict: {month: {disease: count}}
+    # Convert to dict: {month: {disease_name: count}}
     month_data = {}
     for r in results:
         m = int(r.month)  # numeric month
         if m not in month_data:
             month_data[m] = {}
-        month_data[m][r.disease] = r.count
+        month_data[m][r.disease_name] = r.count  # use disease_name
 
     # For each month, get top disease
     final = []
@@ -237,13 +239,13 @@ def dashboard_stats():
     month_data = {}
     for r in treatments:
         m = r.month.strip()
+        t_type = r.treatment_type or "Unknown"  # ✅ Handle None safely
         if m not in month_data:
             month_data[m] = {}
-        month_data[m][r.treatment_type] = r.count
+        month_data[m][t_type] = r.count
 
     treatment_data = [{"month": m, "treatments": t} for m, t in month_data.items()]
 
-    # Return everything together
     return jsonify({
         "registrations": reg_data,
         "treatments": treatment_data
@@ -288,18 +290,29 @@ def patient_demographics():
         age_counts.append({'age_group': label, 'count': count})
 
     # Query top 5 diseases
-    disease_counts_query = Patient.query
+    disease_alias = aliased(DiseaseDesc)
+
+# Base query
+    disease_counts_query = db.session.query(
+        disease_alias.name.label("disease_name"),
+        func.count(Patient.id).label("count")
+    ).join(disease_alias, Patient.disease_id == disease_alias.id)
+
+    # Apply date filter if provided
     if start_date and end_date:
         disease_counts_query = disease_counts_query.filter(Patient.registered_at.between(start_date, end_date))
+
+    # Group, order, and limit
     disease_counts = (
         disease_counts_query
-        .with_entities(Patient.disease, func.count(Patient.id).label('count'))
-        .group_by(Patient.disease)
+        .group_by(disease_alias.name)
         .order_by(func.count(Patient.id).desc())
         .limit(5)
         .all()
     )
-    top_diseases = [{'disease': d.disease, 'count': d.count} for d in disease_counts]
+
+    # Format for JSON
+    top_diseases = [{'disease': d.disease_name, 'count': d.count} for d in disease_counts]
 
     return jsonify({'age_groups': age_counts, 'top_diseases': top_diseases})
 
@@ -329,6 +342,12 @@ def staff_workload_report():
     return jsonify([
         {"doctor": d[0], "patients": d[1]} for d in data
     ])
+
+@admin.route("/api/diseases", methods=["GET"])
+def get_diseases():
+    diseases = DiseaseDesc.query.all()
+    result = [{"id": d.id, "name": d.name} for d in diseases]
+    return jsonify(result)
 
 
 

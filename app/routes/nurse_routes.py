@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, render_template, jsonify, request,redirect,flash
 from flask_login import login_required
 from flask_login import current_user
-from app.models import PatientLog, Patient ,PatientReport
+from app.models import PatientLog, Patient ,PatientReport,HospitalNotification
 from app import db
 from flask import current_app
 import os
@@ -132,7 +132,8 @@ def get_registered_count():
     count = Patient.query.filter(func.date(Patient.registered_at) == today).count()
     return jsonify({"count": count})
 
-@nurse.route("/update_patients/<int:patient_id>", methods=["POST"])
+@nurse.route("/update_patients_Nurse/<int:patient_id>", methods=["POST"])
+@login_required
 def update_patient(patient_id):
     data = request.get_json(force=True, silent=False)
     print("DEBUG:", data)
@@ -154,6 +155,62 @@ def update_patient(patient_id):
     db.session.commit()
 
     return jsonify({"message": "Patientrtry updated successfully!"}), 200
+
+
+@nurse.route("/search_patientNurse", methods=["POST"])
+@login_required
+def search_patient():
+    patient_name = request.form.get("patient_name")
+    patient_id = request.form.get("patient_id")
+
+    query = Patient.query
+
+    if patient_name:
+        query = query.filter(Patient.first_name.ilike(f"%{patient_name}%"))
+
+    if patient_id:
+        query = query.filter(Patient.id == patient_id)
+
+    result = query.first()
+
+    if result:
+        return jsonify({
+            "id": result.id,
+            "first_name": result.first_name,
+            "last_name": result.last_name,
+            "email": result.email,
+            "phone": result.phone,
+            "dob": result.dob.strftime("%Y-%m-%d") if result.dob else "",
+            "gender": result.gender,
+            "address": result.address,
+            "nic": result.nic,
+            "marital_status": result.marital_status,            
+        })
+    else:
+        return jsonify({"error": "No patient found"})
+    
+@nurse.route('/notification', methods=['GET', 'POST'])
+def create_notification():
+    if request.method == 'POST':
+        patient_id = request.form.get('patient_id') or None
+        updates = request.form.get('updates')
+        date_str = request.form.get('date')
+
+        notification_date = datetime.strptime(date_str, "%Y-%m-%d")
+
+        new_notification = HospitalNotification(
+            patient_id=patient_id,
+            updates=updates,
+            notification_date=notification_date
+        )
+
+        db.session.add(new_notification)
+        db.session.commit()
+        flash('Hospital notification added successfully!', 'success')
+        return redirect(url_for('nurse.create_notification'))
+
+    return render_template('create_notification.html')
+
 
 
 

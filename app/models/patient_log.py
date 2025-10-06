@@ -22,4 +22,4 @@ class PatientLog(db.Model):
 
     patient = db.relationship('Patient', backref='logs')
     nurse = db.relationship('User', foreign_keys=[nurse_id], backref='nurse_logs')
-    doctor = db.relationship('User', foreign_keys=[doctor_id], backref='doctor_logs')
+    doctor = db.relationship('User', foreign_keys=[doctor_id], backref='patient_logs')

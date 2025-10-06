@@ -146,57 +146,65 @@ fetch('/top-disease-monthly')
             // --- 2. Treatments by Type per Month ---
             let treatLabels = data.treatments.map(t => t.month);
 
-            // Collect all unique treatment types
+            // Collect all unique treatment types safely
             let treatmentTypes = [];
             data.treatments.forEach(t => {
-                Object.keys(t.treatments).forEach(tt => {
-                    if (!treatmentTypes.includes(tt)) treatmentTypes.push(tt);
-                });
+                if (t.treatments && typeof t.treatments === 'object') {
+                    Object.keys(t.treatments).forEach(tt => {
+                        if (tt && !treatmentTypes.includes(tt)) treatmentTypes.push(tt);
+                    });
+                }
             });
 
             // Prepare datasets for each treatment type
-            let darkMatteColors = [
-                "#374151", // Charcoal Gray
-                "#4B5563", // Dark Slate
-                "#1F2937", // Deep Gray
-                "#6B21A8", // Matte Purple
-                "#1E3A8A", // Matte Navy
-                "#065F46", // Matte Green
-                "#92400E", // Burnt Orange
-                "#7F1D1D"  // Deep Red
+            const darkMatteColors = [
+                "#374151", "#4B5563", "#1F2937", "#6B21A8",
+                "#1E3A8A", "#065F46", "#92400E", "#7F1D1D"
             ];
+
             let datasets = treatmentTypes.map((tt, idx) => {
                 return {
                     label: tt,
-                    data: data.treatments.map(t => t.treatments[tt] || 0),
+                    data: data.treatments.map(t => (t.treatments && t.treatments[tt]) ? t.treatments[tt] : 0),
                     backgroundColor: darkMatteColors[idx % darkMatteColors.length]
                 };
             });
 
-            new Chart(document.getElementById("treatmentChart"), {
-                type: "bar",
-                data: {
-                    labels: treatLabels,
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ": " + context.raw;
+            // Only create the chart if there is at least one dataset
+            if (datasets.length > 0 && treatLabels.length > 0) {
+                new Chart(document.getElementById("treatmentChart"), {
+                    type: "bar",
+                    data: {
+                        labels: treatLabels,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ": " + context.raw;
+                                    }
                                 }
                             }
+                        },
+                        scales: {
+                            x: { stacked: true },
+                            y: { stacked: true }
                         }
-                    },
-                    scales: {
-                        x: { stacked: true },
-                        y: { stacked: true }
                     }
-                }
-            });
-        });
+                });
+            } else {
+                // Show message if no data
+                document.getElementById("treatmentChart").replaceWith(
+                    document.createElement("p").appendChild(
+                        document.createTextNode("No treatment data available.")
+                    )
+                );
+            }
+        })
+        .catch(err => console.error("Error loading dashboard stats:", err));
 });
 
 
