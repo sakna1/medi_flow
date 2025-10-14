@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 from flask import url_for, send_from_directory
 from datetime import date ,datetime
 from sqlalchemy import func
+from .ai_service import call_gemini_ai,get_all_rooms_status
 
 nurse = Blueprint('nurse', __name__)
 
@@ -41,7 +42,31 @@ def log_scan():
     db.session.add(log)
     db.session.commit()
 
-    return jsonify({'message': 'Scan logged successfully'})
+    new_patient = {
+        "patient_id": patient.id,
+        "condition": patient.condition,   # make sure this column exists
+        "age": patient.age,
+        "doctor_id": patient.doctor_id,
+        "disease_id": patient.disease_id,
+        "est_time": patient.estimated_time  # add if your table has this
+    }
+
+    # ✅ Get current rooms data (for now, mock or fetch from DB)
+    rooms = get_all_rooms_status()
+
+    # ✅ Send to Gemini AI
+    ai_response = call_gemini_ai(new_patient, rooms)
+
+    # (Optional) Parse and store AI’s output (room assignment + queue)
+    # Example: update patient’s room & queue
+    # response_json = json.loads(ai_response)
+    # patient.room_number = response_json["assigned_room"]
+    # db.session.commit()
+
+    return jsonify({
+        'message': 'Scan logged successfully',
+        'ai_result': ai_response
+    })
 
 @nurse.route("/upload_report/<int:patient_id>", methods=["POST"])
 @login_required
@@ -210,6 +235,31 @@ def create_notification():
         return redirect(url_for('nurse.create_notification'))
 
     return render_template('create_notification.html')
+
+@nurse.route('/nurse/test_ai_queue', methods=['POST'])
+def test_ai_queue():
+    data = request.get_json()
+
+    new_patient = {
+        "patient_id": data.get("patient_id"),
+        "condition": data.get("condition", "in_progress"),
+        "age": data.get("age", 45),
+        "doctor_id": data.get("doctor_id"),
+        "disease_id": data.get("disease_id"),
+        "est_time": data.get("est_time", 15)
+    }
+
+    rooms = data.get("rooms", [])
+
+    # 🧠 Call the Gemini API with our function
+    ai_response = call_gemini_ai(new_patient, rooms)
+
+    return jsonify({
+        "message": "AI processed successfully",
+        "input": {"new_patient": new_patient, "rooms": rooms},
+        "ai_response": ai_response
+    })
+
 
 
 
