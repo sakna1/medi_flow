@@ -9,4 +9,5 @@ python-dotenv==1.0.1
 SQLAlchemy-Utils==0.41.2
 grpcio==1.68.0
 grpcio-tools==1.68.0
-protobuf==4.25.3
+protobuf>=5.26.1
+
