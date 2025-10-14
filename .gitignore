@@ -13,3 +13,4 @@ __pycache__/
 # Virtual environments
 venv/
 .env/
+app/routes/ai_service.py

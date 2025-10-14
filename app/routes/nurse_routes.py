@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 from flask import url_for, send_from_directory
 from datetime import date ,datetime
 from sqlalchemy import func
-from .ai_service import call_gemini_ai,get_all_rooms_status
+
 
 nurse = Blueprint('nurse', __name__)
 
@@ -236,29 +236,6 @@ def create_notification():
 
     return render_template('create_notification.html')
 
-@nurse.route('/nurse/test_ai_queue', methods=['POST'])
-def test_ai_queue():
-    data = request.get_json()
-
-    new_patient = {
-        "patient_id": data.get("patient_id"),
-        "condition": data.get("condition", "in_progress"),
-        "age": data.get("age", 45),
-        "doctor_id": data.get("doctor_id"),
-        "disease_id": data.get("disease_id"),
-        "est_time": data.get("est_time", 15)
-    }
-
-    rooms = data.get("rooms", [])
-
-    # 🧠 Call the Gemini API with our function
-    ai_response = call_gemini_ai(new_patient, rooms)
-
-    return jsonify({
-        "message": "AI processed successfully",
-        "input": {"new_patient": new_patient, "rooms": rooms},
-        "ai_response": ai_response
-    })
 
 
 
