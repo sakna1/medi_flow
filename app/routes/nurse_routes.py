@@ -50,22 +50,8 @@ def log_scan():
         "disease_id": patient.disease_id,
         "est_time": patient.estimated_time  # add if your table has this
     }
-
-    # ✅ Get current rooms data (for now, mock or fetch from DB)
-    rooms = get_all_rooms_status()
-
-    # ✅ Send to Gemini AI
-    ai_response = call_gemini_ai(new_patient, rooms)
-
-    # (Optional) Parse and store AI’s output (room assignment + queue)
-    # Example: update patient’s room & queue
-    # response_json = json.loads(ai_response)
-    # patient.room_number = response_json["assigned_room"]
-    # db.session.commit()
-
     return jsonify({
-        'message': 'Scan logged successfully',
-        'ai_result': ai_response
+        'message': 'Scan logged successfully',        
     })
 
 @nurse.route("/upload_report/<int:patient_id>", methods=["POST"])
