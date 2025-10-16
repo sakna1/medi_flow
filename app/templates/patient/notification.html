@@ -45,7 +45,7 @@
         <li><a href="{{ url_for('patient.dashboard')}}">Home</a></li>              
         <li><a href="{{ url_for('patient.appoinments')}}">Appointments</a></li>
         <li><a href="{{ url_for('patient.faqpage')}}">FAQ</a></li>
-        <li><a href="{{ url_for('patient.notification')}}">Notifications</a></li>
+        <li><a href="{{ url_for('patient.view_notifications')}}">Notifications</a></li>
         <div class="d-flex align-items-center text-white hello-patient">
           <div id="popupContainer">
       <a href="#" id="openFormBtn">Hello Patient {{ user }} </a>
@@ -77,59 +77,25 @@
           <i class="fas fa-search"></i>
         </div>
       </div>
-      <div class="notification-list">
-        <div class="notification-item unread">
-          <p><strong>You are 5 patients away from being seen.</strong></p>
-          <span class="timestamp">Just now</span>
-        </div>
-        <div class="notification-item unread">
-          <p>Your blood test report is ready to collect.</p>
-          <span class="timestamp">30 min ago</span>
-        </div>
-        <div class="notification-item unread">
-          <p>Your blood test report is ready to collect.</p>
-          <span class="timestamp">30 min ago</span>
-        </div>
-        <div class="notification-item unread">
-          <p>Your blood test report is ready to collect.</p>
-          <span class="timestamp">30 min ago</span>
-        </div>
-        <div class="notification-item unread">
-          <p>Your blood test report is ready to collect.</p>
-          <span class="timestamp">30 min ago</span>
-        </div>        
-        <div class="notification-item unread">
-          <p>Your blood test report is ready to collect.</p>
-          <span class="timestamp">30 min ago</span>
-        </div>
-        <div class="notification-item unread">
-          <p>Your blood test report is ready to collect.</p>
-          <span class="timestamp">30 min ago</span>
-        </div>
-        <div class="notification-item unread">
-          <p>Your blood test report is ready to collect.</p>
-          <span class="timestamp">30 min ago</span>
-        </div>
-        <div class="notification-item unread">
-          <p>Your blood test report is ready to collect.</p>
-          <span class="timestamp">30 min ago</span>
-        </div>
-        <div class="notification-item unread">
-          <p>Your blood test report is ready to collect.</p>
-          <span class="timestamp">30 min ago</span>
-        </div>
-        <div class="notification-item unread">
-          <p>Your blood test report is ready to collect.</p>
-          <span class="timestamp">30 min ago</span>
-        </div>
-
-        <div class="notification-item">
-          <p>Reminder: Appointment with Dr. Valeria at 2:00 PM.</p>
-          <span class="timestamp">Yesterday</span>
-        </div>
+      <div class="notification-list" id="notificationList">
+      {% if notifications %}
+        {% for note in notifications %}
+          <div class="notification-item {% if note.type == 'patient' %}patient{% else %}general{% endif %}">
+            <div class="notification-info">
+              <p>{{ note.updates }}</p>
+              <div class="notification-meta">
+                <span class="type-badge {{ note.type }}">{{ note.type | capitalize }}</span>
+                <span class="timestamp">{{ note.notification_date.strftime('%Y-%m-%d') }}</span>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="no-notifications">No hospital updates available.</p>
+      {% endif %}
+     </div>
       </div>
     </div>
-  </div>
   </main>
 
   <!-- Footer -->
@@ -147,7 +113,7 @@
   </footer>
 
  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/contact.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/update_notification.js') }}"></script>
   <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>
   <script src="{{ url_for('static', filename='js/Search.js') }}"></script>
 </body>

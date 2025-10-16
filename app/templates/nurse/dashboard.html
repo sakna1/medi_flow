@@ -8,6 +8,7 @@
   <!-- CSS -->
  
   <link rel="stylesheet" href="{{ url_for('static', filename='css/doctordashboard.css') }}">
+
   
   <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
@@ -97,9 +98,8 @@
 
         <div class="card">
           <a href="{{ url_for('nurse.create_notification') }}" class="card-link">
-           <div class="card-icon"><i class="bi bi-calendar-event"></i></div>
-           <button id="test-scan" class="btn btn-primary">Scan</button>
-          <h3></a>New patient</h3>    
+           <div class="card-icon"><i class="bi bi-calendar-event"></i></div>           
+          <h3></a>Hospital updates</h3>    
         </div>
         </a>
       </div>   

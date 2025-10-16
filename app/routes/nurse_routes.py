@@ -200,27 +200,38 @@ def search_patient():
     else:
         return jsonify({"error": "No patient found"})
     
-@nurse.route('/notification', methods=['GET', 'POST'])
+@nurse.route('/create_notification', methods=['GET', 'POST'])
 def create_notification():
     if request.method == 'POST':
-        patient_id = request.form.get('patient_id') or None
         updates = request.form.get('updates')
-        date_str = request.form.get('date')
+        notification_type = request.form.get('type')
+        patient_id = request.form.get('patient_id')
+        date = request.form.get('date')
 
-        notification_date = datetime.strptime(date_str, "%Y-%m-%d")
+        # validate required field
+        if not updates:
+            flash("Notification message is required!", "danger")
+            return redirect(url_for('nurse.create_notification'))
 
-        new_notification = HospitalNotification(
-            patient_id=patient_id,
+        notification = HospitalNotification(
             updates=updates,
-            notification_date=notification_date
+            notification_date=datetime.strptime(date, "%Y-%m-%d"),
+            type=notification_type,
+            patient_id=patient_id if patient_id else None,
+            created_by=current_user.role
         )
 
-        db.session.add(new_notification)
+        db.session.add(notification)
         db.session.commit()
-        flash('Hospital notification added successfully!', 'success')
+
+        flash("✅ Notification added successfully!", "success")
         return redirect(url_for('nurse.create_notification'))
 
     return render_template('create_notification.html')
+
+    
+
+  
 
 
 

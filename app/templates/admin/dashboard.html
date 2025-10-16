@@ -84,9 +84,9 @@
           <span id="registered-count">0</span>
         </div>
         <div class="card">
-          <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
-          <h3>Appoinments Today</h3>
-          <span id="appointments-count">0</span>
+          <a href="{{ url_for('nurse.create_notification') }}" class="card-link">
+           <div class="card-icon"><i class="bi bi-calendar-event"></i></div>           
+          <h3></a>Hospital updates</h3>    
         </div>
       </div>   
     </div>

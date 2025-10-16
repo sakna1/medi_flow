@@ -1,5 +1,6 @@
-.notification-container {
-  padding: -20px 20px;
+/* Container */
+.notification-container { 
+  padding: 0 20px;
   display: flex;
   justify-content: center;
   background: url('../images/bg.jpg') no-repeat center center / cover;
@@ -7,16 +8,20 @@
   position: relative;
 }
 
+/* Panel */
 .notification-panel {
   border-radius: 12px;
-  padding: 10px;
+  padding: 20px;
   width: 1200px;
   height: 500px;
   margin-top: 0;
   display: flex;
   flex-direction: column;
+  background: rgba(255, 255, 255, 0.95); /* slightly transparent for bg image */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
+/* Header */
 .notification-header {
   display: flex;
   flex-wrap: wrap;
@@ -32,6 +37,7 @@
   margin-top: 0;
 }
 
+/* Tabs */
 .notification-tabs {
   display: flex;
   gap: 20px;
@@ -59,6 +65,7 @@
   font-size: 12px;
 }
 
+/* Search */
 .notification-search {
   position: relative;
   flex: 1;
@@ -80,6 +87,7 @@
   color: #888;
 }
 
+/* Notification List */
 .notification-list {
   margin-top: 10px;
   display: flex;
@@ -90,6 +98,7 @@
   padding-right: 5px;
 }
 
+/* Individual Notification Item */
 .notification-item {
   background: #f9f9f9;
   padding: 15px 20px;
@@ -98,6 +107,7 @@
   justify-content: space-between;
   font-size: 14px;
   transition: background 0.3s;
+  position: relative;
 }
 
 .notification-item.unread {
@@ -109,8 +119,30 @@
   background: #eef4ff;
 }
 
+/* Timestamp */
 .timestamp {
   color: #666;
   font-size: 12px;
   white-space: nowrap;
+}
+
+/* Type Badge */
+.type-badge {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  text-transform: capitalize;
+}
+
+.type-badge.general {
+  background-color: #5a67d8;
+}
+
+.type-badge.patient {
+  background-color: #e53e3e;
 }

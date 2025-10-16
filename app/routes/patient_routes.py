@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file,jsonify
 from flask_login import login_required, login_user, current_user
-from app.models import Patient , PatientLog , User ,DiseaseDesc
+from app.models import Patient , PatientLog , User ,DiseaseDesc,HospitalNotification
 import qrcode
 import io
 from zoneinfo import ZoneInfo
@@ -44,7 +44,6 @@ def appoinments():
     return render_template('patient/appoinments.html',user=current_user.first_name)
 
 @patient.route('/patient/contact')
-@login_required
 def contact():
     return render_template('patient/contact.html')
 
@@ -312,3 +311,17 @@ def patient_past_appointments():
         })
 
     return jsonify(data)
+
+@patient.route('/view_notifications', methods=['GET'])
+def view_notifications():
+    """
+    Fetch all hospital notifications relevant to the logged-in patient:
+    - General updates (type='general')
+    - Patient-specific updates (patient_id == current_user.id)
+    """
+    notifications = HospitalNotification.query.filter(
+        (HospitalNotification.type == 'general') |
+        (HospitalNotification.patient_id == current_user.id)
+    ).order_by(HospitalNotification.notification_date.desc()).all()
+
+    return render_template('patient/notifications.html', notifications=notifications, user=current_user.name)
