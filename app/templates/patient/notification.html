@@ -62,15 +62,19 @@
      <div id="popupOverlay"></div>
 
   <!-- Notification Content -->
-   <main class="main-content"></main>
-  <div class="notification-container">
+  <main class="main-content"></main>
+   <div class="notification-container">
     <div class="notification-panel">
       <div class="notification-header">
         <h2>List Notification</h2>
         <div class="notification-tabs">
-          <span class="tab active">All <span class="count">20</span></span>
-          <span class="tab">Archive <span class="count">10</span></span>
-          <span class="tab">Favorite <span class="count">17</span></span>
+          {% set all_count = notifications|length %}
+          {% set archive_count = notifications|selectattr('is_archived')|list|length %}
+          {% set favorite_count = notifications|selectattr('is_favorite')|list|length %}
+
+          <span class="tab active">All <span class="count">{{ all_count }}</span></span>
+          <span class="tab">Archive <span class="count">{{ archive_count }}</span></span>
+          <span class="tab">Favorite <span class="count">{{ favorite_count }}</span></span>
         </div>
         <div class="notification-search">
           <input type="text" placeholder="Search notification..." />

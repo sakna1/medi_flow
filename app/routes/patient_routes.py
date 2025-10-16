@@ -9,6 +9,7 @@ from sqlalchemy import cast, Date
 from app import db
 import pytz
 from flask_login import UserMixin
+from sqlalchemy import or_
 patient = Blueprint('patient', __name__)
 
 from flask import session
@@ -320,8 +321,10 @@ def view_notifications():
     - Patient-specific updates (patient_id == current_user.id)
     """
     notifications = HospitalNotification.query.filter(
-        (HospitalNotification.type == 'general') |
-        (HospitalNotification.patient_id == current_user.id)
+        or_(
+            HospitalNotification.type == 'general',
+            HospitalNotification.patient_id == current_user.id
+        )
     ).order_by(HospitalNotification.notification_date.desc()).all()
 
-    return render_template('patient/notifications.html', notifications=notifications, user=current_user.name)
+    return render_template('patient/notification.html', notifications=notifications, user=current_user.username)
