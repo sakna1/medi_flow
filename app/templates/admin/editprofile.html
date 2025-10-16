@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mediflow Dashboard</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/doctordashboard.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/editprofile.css') }}">
+  
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Background Blur Layer -->
+  <div class="bg-blur"></div>
+
+  <!-- Page Wrapper START -->
+  <div class="page-wrapper">
+
+    <!-- Top Info Bar -->
+    <div class="top-info-bar">
+      <div class="top-bar-content">
+        <div class="logo">
+          <img src="../static/img/logonew.png" alt="Mediflow Logo">
+        </div>
+        <div class="info-row">
+          <div class="info-item">
+            <i class="bi bi-telephone-fill"></i>
+            <div><strong>Emergency</strong><br>(+94) 11 275 5623</div>
+          </div>
+          <div class="info-item">
+            <i class="bi bi-clock-fill"></i>
+            <div><strong>Work Hours</strong><br>06:30 AM - 2:00 PM (Weekdays)</div>
+          </div>
+          <div class="info-item">
+            <i class="bi bi-geo-alt-fill"></i>
+            <div><strong>Location</strong><br>Maharagama</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Bar -->
+     <nav class="navbar">
+      <ul class="navbar-nav">
+        <li><a href="{{ url_for('admin.dashboard')}}">Home</a></li>              
+        <li><a href="{{ url_for('admin.editprofile')}}">Manage Profile</a></li>
+        <div class="d-flex align-items-center text-white hello-patient">
+          <div id="popupContainer">
+      <a href="#" id="openFormBtn">Hello Admin {{ admin_name }} </a>
+      <div id="popupBox" class="popup-box">
+        <h3>Account</h3>
+        <form>          
+         <div><label><a href="{{ url_for('auth.logout')}}">Logout</a></label></div>
+        </form>
+      </div>    
+          <i class="bi bi-person-circle fs-5"></i>
+        </div>
+      </ul>    
+    </nav>
+     <div id="popupOverlay"></div>
+
+    <main class="container">
+
+    <!-- Search -->
+   <section class="search-box">
+    <label>Search User</label>
+    <input type="text" id="searchInput" placeholder="Enter doctor/nurse name">
+    <button type="button" onclick="searchUser()">Search</button>
+   </section>
+
+    </main>
+  <section class="personal-info-card">
+  <div class="card-header">Personal Info</div>
+  <div class="card-body">
+    <div class="form-row">
+      <label>User ID</label>
+      <input type="text" id="userid"/>
+      <label>Date of Birth</label>
+      <input type="date" id="dob"  readonly/>
+    </div>
+    <div class="form-row">
+      <label>First Name</label>
+      <input type="text" id="firstname" />
+      <label>Marital Status</label>
+      <input type="text" id="maritalstatus"/>
+    </div>
+    <div class="form-row">
+      <label>Last Name</label>
+      <input type="text" id="lastname"/>
+      <label>Email</label>
+      <input type="email" id="email"/>
+    </div>
+    <div class="form-row">
+      <label>Gender</label>
+      <input type="text" id="gender"/>
+      <label>Address</label>
+      <input type="text" id="address"/>
+    </div>
+    <div class="form-row">
+      <label>NIC</label>
+      <input type="text" id="nic" readonly/>
+      <label>Contact Number</label>
+      <input type="text" id="contact"/>
+    </div>
+     <div class="save-btn-wrapper">
+    <button class="save-btn" onclick="saveUser()">Save</button>
+    </div>
+  </div>
+</section>
+<!-- Save Button -->
+<div class="save-btn-wrapper">
+  <!--<button class="save-btn">Save</button>-->
+</div>  
+
+  </div> <!-- END Page Wrapper -->
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-left">
+        &copy; 2025 Mediflow. All rights reserved.
+      </div>
+      <div class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>        
+      </div>
+    </div>
+  </footer>
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/adminprofile.js') }}"></script>
+  
+</body>
+</html>

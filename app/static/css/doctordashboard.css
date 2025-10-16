@@ -1,0 +1,595 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Ensure full height */
+html, body {
+  height: 100%;
+}
+
+/* Wrapper layout */
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* BODY background */
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: url('../img/docdash.jpg') no-repeat center center fixed;
+  background-size: cover;
+  overflow-x: hidden;
+}
+
+/* Background Blur */
+.bg-blur {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('../img/docdash.jpg');
+  background-size: cover;
+  background-position: center;
+  filter: blur(8px);
+  z-index: -1;
+}
+
+/* Top Info Bar */
+.top-info-bar {
+  background-color: #e9f1f7;
+  padding: 10px 20px;
+  border-bottom: 1px solid #ccc;
+}
+
+.top-bar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.logo img {
+  height: 40px;
+}
+
+.info-row {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #2c3b48;
+}
+
+.info-item i {
+  font-size: 20px;
+  margin-right: 10px;
+  color: #1a2a39;
+}
+
+/* Navbar */
+.navbar {
+  background-color: #2C3B48;
+  padding: 15px 20px;
+}
+
+.navbar-nav {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 50px;
+}
+
+.navbar-nav li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.hello-patient {
+  margin-left: auto;
+  color: #e9eef3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+}
+
+/* Hero Text */
+.hero-wrapper {
+  text-align: center;
+}
+
+.line {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeSlideUp 1s ease-out forwards;
+}
+
+.line1 {
+  animation-delay: 0.3s;
+  margin-top: 30px;
+  color: #e1e6eb;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 2px;
+  font-size: 20px;
+}
+
+.line2 {
+  animation-delay: 1.2s;
+  color: #1a2a39;
+  font-weight: bold;
+  font-size: 30px;
+  line-height: 1.4;
+}
+
+@keyframes fadeSlideUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card Container */
+.container {
+  max-width: 1200px;
+  padding: 0 20px;
+  margin: 0 auto;
+  flex: 1;
+}
+
+.cards {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 20px;
+  justify-content: center;
+  margin: 40px 0;
+  margin-bottom: 10px;
+}
+
+.card {
+  width: 300px;
+  background-color: rgb(161, 197, 221);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  min-height: 150px;
+}
+
+.card-icon {
+  font-size: 24px;
+  color: #2b3a60;
+  margin-bottom: 10px;
+}
+
+.card h3 {
+  margin: 0 0 10px 0;
+  color: #2b3a60;
+  font-size: 18px;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  transition: 0.3s ease;
+}
+
+/* Footer */
+.footer {
+  background: #152238;
+  color: #fff;
+  padding: 20px 5%;
+  font-size: 14px;
+}
+
+.footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.footer-left {
+  flex: 1;
+  min-width: 100px;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.footer-links a {
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
+
+.footer-links a:not(:last-child)::after {
+  content: "|";
+  margin-left: 15px;
+  color: #fff;
+}
+
+/* Schedule and To-Do Section */
+.schedule-todo-section {
+  display: flex;
+  gap: 2rem;
+  margin: 40px auto;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 0 1rem;
+}
+
+.schedule-card,
+.todo-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 24px;
+  width: 550px;
+  min-width: 260px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  flex: 1 1 300px;
+}
+
+.schedule-card:hover,
+.todo-card:hover {
+  transform: translateY(-4px);
+}
+
+.schedule-card h3,
+.todo-card h3 {
+  font-size: 1.25rem;
+  margin-bottom: 16px;
+  color: #183D5D;
+}
+
+.schedule-card ul,
+.todo-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+}
+
+.schedule-card li,
+.todo-card li {
+  padding: 8px 0;
+  font-size: 0.95rem;
+  border-bottom: 1px dashed #ccc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.schedule-card .tag {
+  background: #E8F0FF;
+  color: #2C5FA9;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  margin-left: auto;
+}
+
+.task-input {
+  display: flex;
+  gap: 8px;
+}
+
+.task-input input {
+  flex: 1;
+  padding: 8px;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.task-input button {
+  padding: 8px 16px;
+  background-color: #2C5FA9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.task-input button:hover {
+  background-color: #1a3e70;
+}
+
+/* Responsive Layout Adjustments */
+@media (max-width: 768px) {
+  .cards {
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .navbar-nav {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .line1, .line2 {
+    margin-left: 0;
+    text-align: center;
+  }
+
+  .schedule-todo-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.5rem;
+  }
+
+  .schedule-card,
+  .todo-card {
+    width: 100%;
+    max-width: 95%;
+    margin: 0 auto;
+  }
+
+  .task-input {
+    flex-direction: column;
+  }
+
+  .task-input input,
+  .task-input button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .footer-left {
+    margin-bottom: 10px;
+  }
+
+  .footer-links {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .schedule-card,
+  .todo-card {
+    padding: 16px;
+    font-size: 0.9rem;
+  }
+
+  .schedule-card h3,
+  .todo-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .schedule-card li,
+  .todo-card li {
+    font-size: 0.85rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .schedule-card .tag {
+    margin-left: 0;
+    margin-top: 4px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1400px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .schedule-todo-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2rem;
+    padding: 0 1rem;
+  }
+
+  .schedule-card,
+  .todo-card {
+    width: 100%;
+    max-width: 95%;
+    margin: 0 auto;
+  }
+
+  .task-input {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .task-input input,
+  .task-input button {
+    width: 100%;
+  }
+}
+
+    #openFormBtn {
+      cursor: pointer;
+      color: #ffffff;      
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+    }
+
+    #popupContainer {
+      position: relative;
+      display: inline-block;
+    }
+
+    .popup-box {
+      position: absolute;
+      top: 100%;       /* place below the link */
+      left: 0;
+      margin-top: 6px;
+      width: 150px;
+      padding: 25px 20px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #333;
+      user-select: none;
+      z-index: 1000;
+      display: none; /* Hidden by default */
+    }
+
+    .popup-box.active {
+      display: block;
+    }
+
+    #popupOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: transparent;
+      z-index: 998;
+    }
+
+    /* Heading */
+    .popup-box h3 {
+      margin: 0 0 15px 0;
+      font-weight: 600;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+
+    /* Form layout */
+    form div {
+      margin: 12px 0;
+      text-align: center;
+    }
+
+    /* Links inside labels */
+    form label a {
+      text-decoration: none;
+      color: #3498db;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: color 0.3s ease;
+    }
+
+    form label a:hover {
+      color: #1d6fa5;      
+      cursor: pointer;
+    }
+
+   .form-row {
+  display: flex;
+  gap: 20px; /* space between columns */
+  align-items: center;
+}
+
+.form-row label {
+  flex: 0 0 120px; /* fixed width for labels */
+  font-weight: bold;
+}
+
+.form-row select,
+.form-row input {
+  flex: 1; /* take equal space */
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+#start-scan {
+  background-color: #2C3B48;   /* Green background */
+  color: white;                /* White text */
+  font-size: 16px;             /* Slightly larger text */
+  font-weight: 600;            /* Bold text */
+  padding: 10px 20px;          /* More clickable area */
+  border-radius: 8px;          /* Rounded corners */
+  border: none;                /* Remove border */
+  cursor: pointer;             /* Pointer cursor */
+  transition: 0.3s ease;       /* Smooth hover effect */
+}
+
+#start-scan:hover {
+  background-color: #2C3B48;   /* Darker green on hover */
+  transform: scale(1.05);      /* Slight zoom effect */
+}
+
+.next-appointment {
+  margin-top: 20px; /* space below the visit table */
+  padding: 15px;
+  border-top: 1px solid #ddd; /* optional separator line */
+  background-color: #f9f9f9;  /* light background to highlight */
+  border-radius: 6px;
+}
+
+.next-appointment label {
+  margin-right: 10px;
+  font-weight: 600;
+  color: #333;
+}
+
+.next-appointment input[type="date"] {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.next-appointment button {
+  padding: 6px 14px;
+  background-color: #2C3B48;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.next-appointment button:hover {
+  background-color: #2C3B48;
+}
+
+.appointment-actions {
+  text-align: left;
+  margin: 15px 0;
+ 
+}
+
+.start-btn {
+  padding: 8px 16px;
+  background-color: #2C3B48; /* green */
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 20px;
+}
+
+.start-btn:hover {
+  background-color: #2C3B48;
+}
+
+
+

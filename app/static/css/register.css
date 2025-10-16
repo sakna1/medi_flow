@@ -1,0 +1,199 @@
+/* General */
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f5f7fa;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 30px;
+}
+
+/* Form Container */
+.form-container {
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 650px;
+}
+
+.form-title {
+  font-size: 26px;
+  font-weight: bold;
+  color: #34495e;
+  margin-bottom: 5px;
+}
+
+.form-subtitle {
+  font-size: 14px;
+  color: #6c757d;
+  margin-bottom: 25px;
+}
+
+.section-title {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #333;
+  border-left: 4px solid #34495e;
+  padding-left: 10px;
+  margin-bottom: 15px;
+}
+
+/* Inputs */
+.form-group {
+  margin-bottom: 15px;
+  width: 600px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #333;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #34495e;
+  outline: none;
+  box-shadow: 0 0 6px rgba(13, 110, 253, 0.3);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Row Layout */
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+/* Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.btn-submit {
+  background: #34495e;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-submit:hover {
+  background: #34495e;
+}
+
+.btn-reset {
+  background: #6c757d;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-reset:hover {
+  background: #5c636a;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+  }
+}
+/* Fix: align inputs and selects in the same row */
+.form-row .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-row .form-group input,
+.form-row .form-group select {
+  height: 44px;            /* same height for both */
+  padding: 10px 12px;      /* keep your current padding */
+  box-sizing: border-box;  /* prevent extra growth */
+}
+
+/* If the select still looks a hair off on Windows, uncomment this: */
+/*
+.form-row .form-group select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+*/
+/* Header Section */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;              /* reduce space between logo and text */
+  margin-bottom: 25px;
+  justify-content: flex-start; 
+}
+
+.logo {
+  width: 160px;           /* slightly smaller logo if needed */
+  height: auto;
+  margin-left: -25px; 
+  
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;   /* stack title and subtitle */
+}
+
+.form-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #34495e;
+  margin: 0;
+}
+
+.form-subtitle {
+  font-size: 14px;
+  color: #6c757d;
+  margin: 2px 0 0 0;
+}
+.form-top {
+  margin-bottom: 20px;
+}
+
+.back-link {
+  text-decoration: none;
+  color: #34495e;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+  color: #34495e;
+}
+
+
+

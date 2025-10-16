@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MediFlow Hospital</title>
+  <link rel="stylesheet" href="../static/css/index.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="#">
+      <img src="../static/img/logonew.png" alt="MEDIFLOW Logo" class="logo me-2" />
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+         <li class="nav-item"><a class="nav-link" href="{{ url_for('patient.contact')}}">Contact</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login')}}">User Login</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('patient.user_login') }}">Patient Login</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-section py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 text-center text-md-start hero-text">
+        <h1>Making Health Care Better Together</h1>
+        <p>We bring expert care with a human touch. Your health is our priority every step of the way.</p>
+      </div>
+      <div class="col-md-6 text-center hero-img">
+        <img src="../static/img/index home.jpg" alt="Doctor" class="img-fluid" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Services Banner Section -->
+<section class="services-section text-white py-5">
+  <div class="container">
+    <div class="row text-center">
+      <div class="col-md-4 mb-3">
+        <div class="service-card bg-white text-dark p-4 rounded shadow-sm h-100">
+          <h5>Primary Care</h5>
+          <p>Comprehensive care for everyday health needs, focusing on prevention, diagnosis, and wellness support.</p>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="service-card bg-white text-dark p-4 rounded shadow-sm h-100">
+          <h5>Emergency Cases</h5>
+          <p>24/7 urgent medical care with experienced doctors and specialists ready to respond quickly.</p>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="service-card bg-white text-dark p-4 rounded shadow-sm h-100">
+          <h5>Counseling & Support</h5>
+          <p>Emotional and psychological support services for patients and families.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Services Cards Section -->
+<section id="services" class="py-5 bg-light">
+  <div class="container">
+    <div class="row text-center mb-4">
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 p-4 border-0 shadow-sm">
+          <img src="../static/img/chemo.jpg" class="img-fluid mb-3 rounded" alt="Service 1">
+          <h5 class="fw-bold">Chemotherapy Service</h5>
+          <p class="text-muted">Advanced cancer treatment with personalized chemotherapy plans, delivered with care and comfort in a supportive environment.</p>
+          <a href="#" class="text-decoration-none border-bottom">Learn More</a>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 p-4 border-0 shadow-sm">
+          <img src="../static/img/onco clinic.webp" class="img-fluid mb-3 rounded" alt="Service 2">
+          <h5 class="fw-bold">Oncology Clinic</h5>
+          <p class="text-muted">Specialized clinic offering expert consultations, diagnosis, and holistic care for patients battling cancer.</p>
+          <a href="#" class="text-decoration-none border-bottom">Learn More</a>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 p-4 border-0 shadow-sm">
+          <img src="../static/img/radiotherapy.webp" class="img-fluid mb-3 rounded" alt="Service 3">
+          <h5 class="fw-bold">Radiotherapy Treatment</h5>
+          <p class="text-muted">Cutting-edge radiation therapy using modern technology to target cancer cells with precision and reduce side effects.</p>
+          <a href="#" class="text-decoration-none border-bottom">Learn More</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About / Doctors Section -->
+<section id="about-doctors" class="py-5">
+  <div class="container">
+    <div class="row align-items-center g-4">
+      <div class="col-md-6">
+        <img src="../static/img/homebg.jpg" alt="Doctors Group" class="img-fluid rounded shadow-sm">
+      </div>
+      <div class="col-md-6">
+        <h2 class="fw-bold mb-3">Comprehensive Cancer Care with Compassion</h2>
+        <p class="text-primary fst-italic mb-3">
+          Dedicated to providing advanced treatments with personalized support at every step
+        </p>
+        <p class="text-muted mb-3">
+          At Maharagama, we combine cutting-edge technology with expert medical care to deliver effective cancer treatments. From diagnosis to recovery, our team ensures patients receive the highest quality of care in a safe and supportive environment.
+        </p>
+        <a href="#" class="text-decoration-none border-bottom">Learn more</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-left">
+      &copy; 2025 Mediflow. All rights reserved.
+    </div>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

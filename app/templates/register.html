@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registration Form - MediFlow</title>
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+</head>
+<body>
+  
+  <div class="form-container">
+    <div class="form-top">
+      <a href="{% if current_user.role == 'Admin' %}
+              {{ url_for('admin.dashboard') }}
+            {% elif current_user.role == 'Nurse' %}
+              {{ url_for('nurse.dashboard') }}
+            {% endif %}" class="back-link">
+        &#8592; Back to Dashboard
+      </a>
+     </div>
+
+    <div class = "header">
+      <img src="../static/img/logo.png" alt="MEDIFLOW Logo" class="logo" />
+       <div class="header-text">
+      <h2 class="form-title">Registration Form</h2>
+      <p class="form-subtitle">Maharagama Apeksha Hospital</p>  
+    </div>
+    </div>   
+    
+    <form method="POST" action="{{ url_for('admin.register_user') }}">
+      <!-- Section: Account Info -->
+      <h3 class="section-title">Account Information</h3>
+      <div class="form-group">
+        <label for="role">Role <span>*</span></label>
+        <select id="role" name="role">
+        {% if current_user.role == 'Nurse' %}
+      <!-- Nurse can only register Patients -->
+      <option value="Patient">Patient</option>
+
+        {% elif current_user.role == 'Admin' %}
+          <!-- Admin can assign any role -->
+          <option value="Doctor">Doctor</option>
+          <option value="Nurse">Nurse</option>
+          <option value="Admin">Admin</option>
+          <option value="Patient">Patient</option>
+
+          {% elif current_user.role == 'Doctor' %}
+          <option value="Doctor">Doctor</option>
+
+        {% endif %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="username">Username <span>*</span></label>
+        <input type="text" id="username" name="username" placeholder="Enter username">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password <span>*</span></label>
+        <input type="password" id="password" name="password" placeholder="Enter password">
+      </div>
+
+      <!-- Section: Personal Info -->
+      <h3 class="section-title">Personal Information</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fname">First Name <span>*</span></label>
+          <input type="text" id="first_name" name="first_name" placeholder="First Name">
+        </div>
+        <div class="form-group">
+          <label for="lname">Last Name</label>
+          <input type="text" id="last_name" name="last_name" placeholder="Last Name">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+         <label for="gender">Gender <span>*</span></label>
+          <select id="gender" name="gender">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="dob">Date of Birth <span>*</span></label>
+          <input type="date" id="date_of_birth" name="date_of_birth">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+           <label for="marital">Marital Status <span>*</span></label>
+            <select id="marital" name="marital_status">
+              <option value="single">Single</option>
+              <option value="married">Married</option>
+            </select>
+        </div>
+        <div class="form-group">
+          <label for="dob">NIC <span>*</span></label>
+          <input type="text" id="nic" name="nic">
+        </div>
+      </div>      
+
+      <!-- Section: Contact Info -->
+      <h3 class="section-title">Contact Information</h3>
+      <div class="form-group">
+        <label for="phone">Phone <span>*</span></label>
+        <input type="tel" id="phone" name="phone">
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email <span>*</span></label>
+        <input type="email" id="email" name="email">
+      </div>
+
+      <div class="form-group">
+        <label for="address">Address</label>
+        <textarea id="address" name="address"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="emergencyName">Emergency Contact Name</label>
+          <input type="text" id="emergencyName" name="emergency_contact_name">
+        </div>
+        <div class="form-group">
+          <label for="emergencyPhone">Emergency Phone</label>
+          <input type="tel" id="emergency_contact_phone" name="emergency_contact_phone">
+        </div>
+      </div>
+
+      <!-- Section: Medical Info -->
+      <div id="medical-info" style="display: none;">
+      <h3 class="section-title">Medical Information</h3>
+      <div class="form-group">
+          <label for="disease">Disease</label>
+          <select id="disease" name="disease" class="form-control" required>
+            <option value="">Loading diseases...</option>
+          </select>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Disease Description</label>
+        <textarea id="description" name="disease_description"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="blood">Blood Type</label>
+          <input type="text" id="blood" name="blood">
+        </div>
+        <div class="form-group">
+          <label for="treatment">Treatment Status</label>
+          <select id="treatment" name="treatment_status" required>           
+            <option value="Not Started">Not Started</option>
+        </select>
+        </div>
+      </div>
+    </div>
+      <!-- Doctor Section -->
+        <div id="doctor-info" style="display: none;">
+          <h3 class="section-title">Doctor Information</h3>
+          <div class="form-group">
+            <label for="specialization">Specialization <span>*</span></label>
+           <input type="text" id="specialization" name="specialization">
+          </div>
+        </div>
+      <!-- Submit Button -->
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">Register</button>
+        <button type="button" class="btn-reset" onclick="resetForm()">Reset</button>
+      </div>
+    </form>
+  </div>
+  <script src="{{ url_for('static', filename='js/registerpatient.js') }}"></script>
+</body>
+</html>

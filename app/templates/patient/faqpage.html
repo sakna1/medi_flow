@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mediflow FAQ</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/faq.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/patientdashboard.css') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<div class="wrapper">
+<body>
+  <!-- Background Blur -->
+  <div class="bg-blur"></div>
+
+  <!-- Top Info Bar -->
+  <div class="top-info-bar">
+    <div class="top-bar-content">
+      <div class="logo">
+        <img src="../static/img/logonew.png" alt="Mediflow Logo">
+      </div>
+      <div class="info-row">
+        <div class="info-item"><i class="bi bi-telephone-fill"></i><div><strong>Emergency</strong><br>(+94) 11 275 5623</div></div>
+        <div class="info-item"><i class="bi bi-clock-fill"></i><div><strong>Work Hours</strong><br>06:30 AM - 2:00 PM</div></div>
+        <div class="info-item"><i class="bi bi-geo-alt-fill"></i><div><strong>Location</strong><br>Maharagama</div></div>
+      </div>      
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+      <ul class="navbar-nav">
+        <li><a href="{{ url_for('patient.dashboard')}}">Home</a></li>              
+        <li><a href="{{ url_for('patient.appoinments')}}">Appointments</a></li>
+        <li><a href="{{ url_for('patient.faqpage')}}">FAQ</a></li>
+        <li><a href="{{ url_for('patient.view_notifications')}}">Notifications</a></li>
+        <div class="d-flex align-items-center text-white hello-patient">
+          <div id="popupContainer">
+      <a href="#" id="openFormBtn">Hello Patient {{ user  }} </a>
+      <div id="popupBox" class="popup-box">
+        <h3>Account</h3>
+        <form>          
+          <div><label><a href="{{ url_for('auth.logout')}}">Logout</a></label></div>
+        </form>
+      </div>    
+          <i class="bi bi-person-circle fs-5"></i>
+        </div>
+      </ul>    
+    </nav>
+     <div id="popupOverlay"></div>
+
+  <!-- FAQ Section -->
+  <section class="faq-section">
+    <div class="faq-container">
+      <div class="faq-content">
+        <h2>Do you have questions?</h2>
+        <div class="accordion">
+          <div class="accordion-item">
+            <button class="accordion-btn">Where is chemotherapy treatment provided?</button>
+            <div class="accordion-content">Chemotherapy is administered at the Rasavi Building.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-btn">Where can I collect my blood test reports?</button>
+            <div class="accordion-content">Reports are available at the lab reception from 10:00 AM.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-btn">What time do the clinics start?</button>
+            <div class="accordion-content">Clinics typically start at 8:00 AM.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-btn">What if I get sick during treatment?</button>
+            <div class="accordion-content">Notify your assigned nurse or visit the emergency unit.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-btn">Where do I get an appointment for radiation treatment?</button>
+            <div class="accordion-content">Visit the oncology counter or book via Mediflow App.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-btn">How can I book a doctor consultation?</button>
+            <div class="accordion-content">Consultations can be booked via the patient portal or hospital reception desk.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-btn">Do you provide pharmacy services?</button>
+            <div class="accordion-content">es, our pharmacy is open from 7:00 AM to 8:00 PM daily.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-btn">Are visiting hours allowed for patients?</button>
+            <div class="accordion-content">Visiting hours are from 4:00 PM to 6:00 PM, except in critical care units.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-btn">How do I access my medical records?</button>
+            <div class="accordion-content">Patients can access records through the Mediflow dashboard after login.</div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-btn">Is there parking available for patients?</button>
+            <div class="accordion-content">Yes, parking facilities are available near the main hospital entrance.</div>
+          </div>         
+        </div>
+      </div>
+      <div class="faq-image">
+        <img src="../static/img/faq.jpg" alt="Mediflow Logo">
+      </div>
+    </div>
+  </section>
+</div>
+<a href="{{ url_for('patient.dashboard')}}" class="back-btn">Back</a>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-left">
+        &copy; 2025 Mediflow. All rights reserved.
+      </div>
+      <div class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="{{ url_for('patient.contact')}}" class="text-white underline hover:text-indigo-300">Contact Us</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/faqscript.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/contact.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/Search.js') }}"></script>
+</body>
+</html>

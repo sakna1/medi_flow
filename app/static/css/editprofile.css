@@ -1,0 +1,238 @@
+.full-width {
+  width: 100%;
+  margin: 30px 0;
+}
+
+.personal-info-card {
+  width: 100%;
+  background-color: #e0e0e0;
+  border: 1px solid #ccc;
+  padding: 0;
+  margin: 5px 0; /* Added top & bottom margin */
+  border-radius: 4px;
+}
+
+.personal-info-card .card-header {
+  background-color: #2c3e50;
+  color: white;
+  padding: 12px 16px;
+  font-weight: bold;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+
+.personal-info-card .card-body {
+  padding: 20px;
+}
+
+.personal-info-card .form-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.personal-info-card .form-row label {
+  width: 20%;
+  min-width: 100px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.personal-info-card .form-row input {
+  width: 25%;
+  min-width: 150px;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+
+.search-box {
+  background-color: #2c3e50;
+  padding: 20px;
+  margin: 20px auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  border-radius: 6px;
+  gap: 10px;
+}
+
+.search-box label {
+  color: #fff;
+  margin: 5px;
+  font-weight: bold;
+}
+
+.search-box input {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  width: 200px;
+}
+
+.search-box button {
+  padding: 8px 16px;
+  background-color: #16a085;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.search-box button:hover {
+  background-color: #13856e;
+}
+
+@media (max-width: 768px) {
+  .personal-info-card .form-row {
+    flex-direction: column;
+  }
+
+  .personal-info-card .form-row label,
+  .personal-info-card .form-row input {
+    width: 100% !important;
+    margin-bottom: 10px;
+  }
+
+  .search-box {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box input,
+  .search-box button {
+    width: 100%;
+  }
+}
+.card-section {
+  width: 100%;
+  background-color: #e0e0e0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin: 5px 0;
+}
+
+.card-section .card-header {
+  background-color: #2c3e50;
+  color: white;
+  padding: 12px 16px;
+  font-weight: bold;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+
+.card-section .card-body {
+  padding: 20px;
+}
+
+/* Visit History Table */
+.visit-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #f4f9fc;
+  margin-top: 5px;
+}
+
+.visit-table th, .visit-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+}
+
+.visit-table th {
+  background-color: #d4ecff;
+}
+
+/* Reports List */
+.report-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+  padding: 8px 12px;
+  background-color: #f8f8f8;
+  border-radius: 4px;
+  width: 500px;
+}
+
+.report-row i {
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+/* Save Button */
+.save-btn-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin: 20px 0;
+}
+
+.save-btn {
+  padding: 10px 20px;
+  background-color: #2c3e50;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.save-btn:hover {
+  background-color: #1a2533;
+}
+
+@media (max-width: 768px) {
+
+  /* Responsive table (scrollable horizontally) */
+  .visit-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .visit-table th, .visit-table td {
+    min-width: 120px;
+  }
+
+  /* Stack reports list vertically */
+  .report-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .report-row i:last-child {
+    align-self: flex-end;
+  }
+
+  /* Save button full width */
+  .save-btn-wrapper {
+    justify-content: center;
+  }
+
+  .save-btn {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  /* Adjust padding for mobile */
+  .card-section .card-body,
+  .card-section .card-header {
+    padding: 15px;
+  }
+}
+
+
+
