@@ -43,8 +43,7 @@ def log_scan():
     db.session.commit()
 
     new_patient = {
-        "patient_id": patient.id, 
-        "doctor_id": patient.doctor_id,
+        "patient_id": patient.id,         
         "disease_id": patient.disease_id,
         "est_time": patient.scan_time  # add if your table has this
     }
