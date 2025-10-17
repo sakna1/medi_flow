@@ -43,12 +43,10 @@ def log_scan():
     db.session.commit()
 
     new_patient = {
-        "patient_id": patient.id,
-        "condition": patient.condition,   # make sure this column exists
-        "age": patient.age,
+        "patient_id": patient.id, 
         "doctor_id": patient.doctor_id,
         "disease_id": patient.disease_id,
-        "est_time": patient.estimated_time  # add if your table has this
+        "est_time": patient.scan_time  # add if your table has this
     }
     return jsonify({
         'message': 'Scan logged successfully',        
