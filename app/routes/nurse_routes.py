@@ -44,8 +44,7 @@ def log_scan():
 
     new_patient = {
         "patient_id": patient.id,         
-        "disease_id": patient.disease_id,
-        "est_time": patient.scan_time  # add if your table has this
+        "disease_id": patient.disease_id,         
     }
     return jsonify({
         'message': 'Scan logged successfully',        
