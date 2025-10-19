@@ -1,7 +1,7 @@
 import google.generativeai as genai
 import os
 from app import db
-from models import Patient, DiseaseDesc, DoctorLog, PatientLog
+from app.models import Patient, DiseaseDesc, DoctorLog, PatientLog
 from datetime import datetime, date
 
 # Configure Gemini
