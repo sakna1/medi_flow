@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 from flask import url_for, send_from_directory
 from datetime import date ,datetime
 from sqlalchemy import func
-from gemini_ai import call_gemini_for_queue
+from app.gemini_ai import call_gemini_for_queue
 
 
 nurse = Blueprint('nurse', __name__)
