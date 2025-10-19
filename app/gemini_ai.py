@@ -31,7 +31,7 @@ def call_gemini_for_queue(patient_id):
         "age": datetime.now().year - patient.dob.year if patient.dob else 0,
         "treatment_condition": patient.treatment_status,
         "disease_id": patient.disease_id,
-        "disease_estimated_time": int(disease.est_time or 0)
+        "disease_estimated_time": int(''.join(filter(str.isdigit, str(disease.est_time))) or 0)
     }
 
     # Prompt for Gemini
