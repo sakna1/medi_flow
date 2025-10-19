@@ -48,14 +48,14 @@ def log_scan():
         
         # Prepare list of patient IDs for AI re-evaluation (used inside the AI function now)
         # We only need to call the AI once to get the full recalculated list
-        ai_full_result = call_gemini_for_queue(patient.id)
+        ai_full_result = call_gemini_for_queue(Patient.id)
         
         if not ai_full_result or "error" in ai_full_result:
             # If AI fails, change the newly created log to "Error" status and return error response
             log.status = "Error"
             log.notes = f"AI failed: {ai_full_result.get('error', 'Unknown AI error')}"
             db.session.commit()
-            print(f"AI failed for patient {patient.id}: {ai_full_result}")
+            print(f"AI failed for patient {Patient.id}: {ai_full_result}")
             return jsonify({
                 'message': 'AI failed to assign queue. Patient logged as waiting.',
                 'details': ai_full_result.get('error', 'Unknown error')
