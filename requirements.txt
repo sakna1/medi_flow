@@ -10,3 +10,4 @@ sqlalchemy-utils
 qrcode 
 pytz 
 Pillow
+google-generativeai

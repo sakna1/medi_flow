@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 from flask import url_for, send_from_directory
 from datetime import date ,datetime
 from sqlalchemy import func
+from gemini_ai import call_gemini_for_queue
 
 
 nurse = Blueprint('nurse', __name__)
@@ -38,16 +39,22 @@ def log_scan():
     if not patient:
         return jsonify({'message': 'Invalid patient code'}), 400
 
-    log = PatientLog(patient_id=patient.id, nurse_id=current_user.id)
+    log = PatientLog(
+        patient_id=patient.id,
+        nurse_id=current_user.id,
+        disease_id=patient.disease_id,
+        scan_time=datetime.now(),
+        status="Waiting"
+    )
     db.session.add(log)
     db.session.commit()
 
-    new_patient = {
-        "patient_id": patient.id,         
-        "disease_id": patient.disease_id,         
-    }
+    # ✨ Call Gemini for room + queue decision
+    ai_result = call_gemini_for_queue(patient.id)
+
     return jsonify({
-        'message': 'Scan logged successfully',        
+        'message': 'Scan logged successfully',
+        'ai_result': ai_result
     })
 
 @nurse.route("/upload_report/<int:patient_id>", methods=["POST"])
