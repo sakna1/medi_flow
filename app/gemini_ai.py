@@ -58,7 +58,7 @@ def call_gemini_for_queue(patient_id):
     # Patient data for AI
     patient_data = {
         "patient_id": patient.id,
-        "age": calculate_age(patient.date_of_birth), # Using the robust age function
+        "age": calculate_age(patient.dob), # Using the robust age function
         "treatment_condition": patient.treatment_status,
         "disease_id": patient.disease_id,
         "disease_estimated_time": int(''.join(filter(str.isdigit, str(disease.est_time))) or 0)
