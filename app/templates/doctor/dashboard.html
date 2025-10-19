@@ -88,22 +88,33 @@
       <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
       <h3>Completed Appointments</h3>
       <p id="completedAppointments">--</p>
-    </div>
+    </div>  
     <div class="card">
       <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
       <h3>Hospital Updates</h3>
-      <p id="hospitalUpdates">Loading...</p>
-    </div>
+      <p id="hospitalUpdates">--</p>
+    </div>    
   </div>
 </div>
 
 <div class="schedule-todo-section">
   <div class="schedule-card">
-    <h3>🗓️ Today’s Schedule</h3>
-    <ul id="doctorScheduleList">
-      
-    </ul>
-  </div>
+    <h3>🏥 Room Assignment</h3>
+      <div id="doctorRoomCard">
+        <label for="roomSelect">Select Room:</label>
+        <select id="roomSelect">
+            <option value="">Select Room</option>
+            <option value="101A">101A</option>
+            <option value="102A">102A</option>
+            <option value="103A">103A</option>
+            <option value="104A">104A</option>
+            <option value="105A">105A</option>
+        </select>
+        <button id="assignBtn">Assign Room</button>
+        <p id="statusMsg"></p>
+      </div>
+ </div>
+
 
   <div class="todo-card">
     <h3>✅ Doctor’s To-Do List</h3>
@@ -138,6 +149,7 @@
 
   <!-- Scripts -->  
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>  
+  <script src="{{ url_for('static', filename='js/room_assign.js') }}"></script>  
   <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script> 
    <script src="{{ url_for('static', filename='js/doctorprofile.js') }}"></script> 
 

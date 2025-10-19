@@ -2,7 +2,7 @@ from flask import Blueprint, render_template,jsonify,request,session
 from flask_login import login_required
 from flask_login import current_user
 from app import db
-from app.models import Patient , PatientLog ,PatientReport,DiseaseDesc
+from app.models import Patient , PatientLog ,PatientReport,DiseaseDesc,DoctorLog,HospitalNotification
 from datetime import datetime,date
 from flask import url_for, send_from_directory
 from sqlalchemy import cast, Date
@@ -202,6 +202,61 @@ def doctor_dash_schedule():
 
     return jsonify(schedule)
 
+@doctor.route('/assign-room', methods=['POST'])
+def assign_room():
+    data = request.get_json()
+    doctor_id =current_user.id   # get logged in doctor id
+    room_no = data.get('room_no')
+
+    if not doctor_id or not room_no:
+        return jsonify({'success': False, 'message': 'Missing data'}), 400
+
+    # Check if room already assigned today
+    existing_room = DoctorLog.query.filter_by(log_date=datetime.utcnow().date(), room_no=room_no).first()
+    if existing_room:
+        return jsonify({'success': False, 'message': f'Room {room_no} already assigned!'}), 400
+
+    # Check if doctor already has a room today
+    existing_doctor_log = DoctorLog.query.filter_by(log_date=datetime.utcnow().date(), doctor_id=doctor_id).first()
+    if existing_doctor_log:
+        existing_doctor_log.room_no = room_no
+    else:
+        new_log = DoctorLog(log_date=datetime.utcnow().date(), doctor_id=doctor_id, room_no=room_no)
+        db.session.add(new_log)
+
+    db.session.commit()
+    return jsonify({'success': True, 'message': f'Room {room_no} assigned successfully'})
+
+@doctor.route('/get-assigned-room', methods=['GET'])
+def get_assigned_room():
+    from flask_login import current_user
+    from datetime import datetime
+
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'User not logged in'}), 401
+
+    today = datetime.utcnow().date()
+    log = DoctorLog.query.filter_by(log_date=today, doctor_id=current_user.id).first()
+
+    if log:
+        return jsonify({'success': True, 'room_no': log.room_no})
+    else:
+        return jsonify({'success': False, 'room_no': None})
+    
+@doctor.route('/hospital-updates', methods=["GET"])
+def hospital_updates():
+    today = date.today()
+    updates = (
+        HospitalNotification.query
+        .filter(db.func.date(HospitalNotification.notification_date) == today)
+        .filter_by(type="general")
+        .order_by(HospitalNotification.notification_date.desc())
+        .all()
+    )
+
+    return jsonify({
+        "updates": [u.updates for u in updates]
+    })
     
 
 

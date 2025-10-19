@@ -592,4 +592,21 @@ body {
 }
 
 
+select, button {
+  margin-top: 10px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+button {
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #0056b3;
+}
+
+
+
 
