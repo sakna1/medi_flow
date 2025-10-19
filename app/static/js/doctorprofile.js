@@ -19,7 +19,7 @@ function loadDashboard() {
             document.getElementById("completedAppointments").textContent = data.completed_appointments;
 
             // Hospital updates
-            document.getElementById("hospitalUpdates").textContent = data.hospital_update;
+            //document.getElementById("hospitalUpdates").textContent = data.hospital_update;
         })
         .catch(error => console.error("Error loading dashboard:", error));
 }
