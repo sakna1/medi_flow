@@ -74,7 +74,12 @@ def log_scan():
             room_no = ai_result.get("room_no")
             doctor_id = ai_result.get("doctor_id")
             queue_number = ai_result.get("queue_number")
-            est_wait_time = ai_result.get('estimated_wait_time', 'N/A')
+            raw_est_time = ai_result.get('estimated_wait_time', 'N/A')
+            # Clean string like "20 mins" → "20"
+            try:
+                est_wait_time = int(''.join(filter(str.isdigit, str(raw_est_time))) or 0)
+            except ValueError:
+                est_wait_time = 0
 
             # Update the patient's latest log
             log_entry = (
