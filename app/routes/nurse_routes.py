@@ -39,22 +39,51 @@ def log_scan():
     if not patient:
         return jsonify({'message': 'Invalid patient code'}), 400
 
+    # 1. CALL AI AND HANDLE FAILURE BEFORE DATABASE TRANSACTION
+    try:
+        # Call the Gemini function to get the room and queue decision
+        ai_result = call_gemini_for_queue(patient.id)
+        
+        # Check if the AI function itself returned an internal error JSON (as defined in gemini_ai.py)
+        if ai_result and "error" in ai_result:
+            # Log the specific error for server-side debugging
+            print(f"AI Model Error: {ai_result.get('raw_output', 'No raw output provided')}")
+            return jsonify({'message': 'AI failed to assign queue. Please retry or assign manually.', 'details': ai_result.get('error')}), 500
+
+    except Exception as e:
+        # Handle exceptions like network failure, timeout, etc.
+        print(f"Gemini API call crashed: {e}")
+        return jsonify({'message': 'System error during queue assignment.', 'details': str(e)}), 500
+
+    # 2. LOG CREATION AND FINAL COMMIT (Only happens if AI call was successful)
+    
+    # Safely extract the required data from the AI result
+    room_no = ai_result.get("room_no")
+    doctor_id = ai_result.get("doctor_id")
+    queue_number = ai_result.get("queue_number")
+    est_wait_time = ai_result.get('estimated_wait_time', 'N/A')
+
+    # Create the PatientLog entry with assigned data
     log = PatientLog(
         patient_id=patient.id,
         nurse_id=current_user.id,
         disease_id=patient.disease_id,
         scan_time=datetime.now(),
-        status="Waiting"
+        room_no=room_no,
+        doctor_id=doctor_id,
+        queue_number=queue_number,
+        status="Assigned",
+        notes=f"AI assigned | Est. wait: {est_wait_time}"
     )
+
     db.session.add(log)
     db.session.commit()
 
-    # ✨ Call Gemini for room + queue decision
-    ai_result = call_gemini_for_queue(patient.id)
-
     return jsonify({
-        'message': 'Scan logged successfully',
-        'ai_result': ai_result
+        'message': 'Scan logged and patient successfully assigned.',
+        'room_no': room_no,
+        'queue_number': queue_number,
+        'estimated_wait_time': est_wait_time
     })
 
 @nurse.route("/upload_report/<int:patient_id>", methods=["POST"])
