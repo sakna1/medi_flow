@@ -58,7 +58,7 @@ Return a JSON object with:
 - estimated_wait_time
 """
 
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-pro")
     response = model.generate_content(prompt)
 
     # Parse AI JSON safely
