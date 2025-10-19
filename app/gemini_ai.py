@@ -29,46 +29,36 @@ def calculate_age(dob):
     return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
 
 
-def call_gemini_for_queue(patient_id):
+def call_gemini_for_queue(new_patient_id): # Renamed argument for clarity
     if AI_MODEL is None:
         return {"error": "AI Model not initialized. Check API Key."}
 
     today = date.today()
-    new_patient = Patient.query.get(patient_id)
+    new_patient = Patient.query.get(new_patient_id)
     disease = DiseaseDesc.query.get(new_patient.disease_id)
 
-    # Collect all currently waiting patients + this new one
+    # Collect all currently waiting logs
     waiting_logs = PatientLog.query.filter(PatientLog.status.in_(["Waiting", "Assigned"])).all()
 
+    # --- Start Data Aggregation ---
     patients_data = []
+    
+    # Aggregate data for all waiting/assigned patients
     for log in waiting_logs:
         p = log.patient
         d = p.disease
         patients_data.append({
             "patient_id": p.id,
+            "is_newly_scanned": (p.id == new_patient.id), # Mark the new patient
             "age": calculate_age(p.dob),
             "treatment_condition": p.treatment_status,
-            "disease_id": p.disease_id,
             "disease_estimated_time": int(''.join(filter(str.isdigit, str(d.est_time))) or 0),
-            "room_no": log.room_no,
+            "room_no": log.room_no, # AI must NOT change this for existing patients
             "doctor_id": log.doctor_id,
             "queue_number": log.queue_number
         })
-
-    # Also add the newly scanned patient (if not already in waiting)
-    if not any(p["patient_id"] == new_patient.id for p in patients_data):
-        patients_data.append({
-            "patient_id": new_patient.id,
-            "age": calculate_age(new_patient.dob),
-            "treatment_condition": new_patient.treatment_status,
-            "disease_id": new_patient.disease_id,
-            "disease_estimated_time": int(''.join(filter(str.isdigit, str(disease.est_time))) or 0),
-            "room_no": None,
-            "doctor_id": None,
-            "queue_number": None
-        })
-
-    # Doctor-room data
+        
+    # Doctor-room data (Kept the same)
     doctor_rooms = []
     doctor_logs = DoctorLog.query.filter(DoctorLog.log_date == today).all()
     for log in doctor_logs:
@@ -77,18 +67,22 @@ def call_gemini_for_queue(patient_id):
         doctor_rooms.append({
             "room_no": log.room_no,
             "doctor_id": log.doctor_id,
-            "queue_length": len(waiting_patients),
-            "total_estimated_time": total_time
+            "total_estimated_time": total_time # Used for Room Selection
         })
+    # --- End Data Aggregation ---
 
-    # New prompt
+    # New prompt (More specific rules for the AI)
     prompt = f"""
-You are an AI Queue Manager. Recalculate queue order and waiting times for ALL patients, including a new one.
-[RULES]:
-1. Reassign the new patient to a room with the lowest total waiting time.
-2. Do not change room for existing patients, but reorder within a room based on age >=60 and active treatment condition.
-3. Estimate total wait time per patient (based on disease_estimated_time).
-4. Return updated queue order for all patients.
+You are an AI Queue Manager. Recalculate queue order and waiting times for ALL patients, including the patient marked 'is_newly_scanned': True.
+
+[YOUR ASSIGNMENT RULES]:
+1. **ROOM ASSIGNMENT**: Only the patient marked 'is_newly_scanned' can be assigned a new room. Choose the room with the lowest total estimated time from Available Rooms.
+2. **ROOM STABILITY**: DO NOT change the 'room_no' for any patient where 'is_newly_scanned' is False.
+3. **QUEUE RE-ORDERING**: For ALL patients (new and existing) within their assigned room, assign a new 'queue_number' (starting at 1) based on priority:
+    a. Priority 1: Age >= 60 OR 'treatment_condition' is 'Active' or similar.
+    b. Priority 2: All others.
+4. **ESTIMATED WAIT TIME**: Calculate a new 'estimated_wait_time' for EVERY patient based on the sum of estimated times of patients ahead of them in their queue.
+5. **OUTPUT FORMAT**: Return ONLY a valid, single JSON list.
 
 Patients:
 {patients_data}
@@ -96,11 +90,11 @@ Patients:
 Available Rooms:
 {doctor_rooms}
 
-Return ONLY JSON list with each patient's details:
+Return ONLY JSON list with the following structure for ALL patients:
 [
   {{
     "patient_id": <int>,
-    "room_no": <string>,
+    "room_no": <int>,
     "doctor_id": <int>,
     "queue_number": <int>,
     "estimated_wait_time": <int>
@@ -108,7 +102,6 @@ Return ONLY JSON list with each patient's details:
   ...
 ]
 """
-
     response = AI_MODEL.generate_content(prompt)
     try:
         raw_text = response.text.strip().lstrip('`json').rstrip('`')
