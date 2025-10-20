@@ -28,14 +28,23 @@ def editprofile():
     return render_template('nurse/editprofile.html',nurse_name=nurse_name)
 
 @nurse.route('/nurse/log_scan', methods=['POST'])
-#@login_required
+@login_required
 def log_scan():
     # 1️⃣ Create and commit new log
-    patient_id = request.form.get("patient_id")
+    data = request.get_json()
+    qr_data = data.get("qr_data")
+
+    if not qr_data:
+        return jsonify({"message": "QR data missing"}), 400
+
+    try:
+        patient_id = int(qr_data)  # Convert QR data to integer
+    except ValueError:
+        return jsonify({"message": "Invalid QR code"}), 400
+
     log = PatientLog(
         patient_id=patient_id,
-        #nurse_id=current_user.id,
-        nurse_id=9,
+        nurse_id=current_user.id,       
         status="Waiting",
         notes="Awaiting AI assignment"
     )
