@@ -55,7 +55,8 @@ def reorder_today_queue():
         print(f"❌ Error during reorder_today_queue: {e}")
 
 
-@nurse.route("/log_scan", methods=["POST"])
+@nurse.route('/nurse/log_scan', methods=['POST'])
+@login_required
 def log_scan():
     """Handles nurse QR scan and patient logging"""
     try:
