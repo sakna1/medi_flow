@@ -11,3 +11,5 @@ qrcode
 pytz 
 Pillow
 google-generativeai
+joblib
+
