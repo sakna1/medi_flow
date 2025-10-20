@@ -35,23 +35,29 @@ def log_scan():
     data = request.get_json()
     qr_data = data.get("qr_data")
 
-    print(f"DEBUG: Received QR Data: [{qr_data}] (Type: {type(qr_data)})")
-
     if not qr_data:
         return jsonify({"message": "QR data missing"}), 400
 
     try:
         qr_data_str = str(qr_data)
-        # Use regex to strip all non-digit characters (Handles 'P103C', 'ID:103', etc.)
+        
+        # LOGGING THE RAW DATA (Already done, confirming 'captain')
+        print(f"DEBUG: Received RAW QR Data: [{qr_data_str}]")
+        
+        # Use regex to strip all non-digit characters
         numeric_part = re.sub(r'\D', '', qr_data_str) 
         
+        # LOGGING THE CLEANED PART
+        print(f"DEBUG: Cleaned Numeric Part: [{numeric_part}]") 
+        
         if not numeric_part:
-            raise ValueError("QR code contains no numerical digits.")
+            # This is triggered if qr_data was "captain" or ""
+            raise ValueError("QR code contains no numerical digits or is empty.")
             
         patient_id = int(numeric_part)
 
     except ValueError:
-        # This covers empty strings, non-numeric data, and cleaning failures.
+        # Returns the 400 error message you are seeing
         return jsonify({"message": "Invalid QR code. Please ensure it contains a valid patient ID."}), 400
     
     # Start transaction
@@ -64,16 +70,14 @@ def log_scan():
             notes="Awaiting AI assignment"
         )
         db.session.add(log)
-        db.session.commit()  # Commit so AI can see the new patient in the queue
+        db.session.commit()  # Commit so AI can see the new patient
 
         # 3️⃣ Collect all waiting/assigned logs and Call AI for queue re-evaluation
-        # Note: You should filter waiting_logs to only include logs relevant to the *current day/session*
         waiting_logs = PatientLog.query.filter(
             PatientLog.status.in_(["Waiting", "Assigned"])
         ).all()
         current_waiting_pids = [wl.patient_id for wl in waiting_logs]
 
-        # Call AI service
         ai_full_result = call_gemini_for_queue(patient_id) 
 
         if not ai_full_result or "error" in ai_full_result:
@@ -92,14 +96,11 @@ def log_scan():
         for result_item in ai_full_result:
             pid = result_item.get("patient_id")
             
-            # Only process patients currently in the waiting list
             if pid in current_waiting_pids:
-                # Safely extract numeric values (or default to 0)
                 room_no = int(result_item.get("room_no") or 0)
                 doctor_id = int(result_item.get("doctor_id") or 0)
                 queue_number = int(result_item.get("queue_number") or 0)
 
-                # Get the latest log entry for this patient
                 log_entry = (
                     PatientLog.query.filter_by(patient_id=pid)
                     .order_by(PatientLog.scan_time.desc())
@@ -114,13 +115,10 @@ def log_scan():
                     log_entry.notes = "AI updated (queue reordered)"
 
                     # 🔹 Predict wait time for this patient
-                    patient = log_entry.patient # Assumes a patient relationship is defined
-                    
-                    # Ensure foreign key lookups are safe
+                    patient = log_entry.patient 
                     disease = DiseaseDesc.query.get(patient.disease_id) if patient and patient.disease_id else None
-                    disease_est_time = disease.est_time if disease else 15 # Default est time
+                    disease_est_time = disease.est_time if disease else 15 
                     
-                    # Recalculate queue length specific to the disease/context
                     queue_length = PatientLog.query.filter(
                         PatientLog.status.in_(["Waiting", "Assigned"]),
                         PatientLog.patient.has(disease_id=patient.disease_id)
@@ -137,7 +135,7 @@ def log_scan():
                         treatment_status=patient.treatment_status,
                         available_doctors=available_doctors,
                         staff_on_duty=staff_on_duty,
-                        scan_time=log_entry.scan_time # Use the actual scan time
+                        scan_time=log_entry.scan_time 
                     )
 
                     log_entry.estimated_wait_time = predicted_wait
