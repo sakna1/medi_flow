@@ -25,5 +25,5 @@ MediFlow is a smart hospital queue management system designed to improve patient
    cd mediflow
 
 # Db update tables
-flask db migrate -m "Added columns to Patient table"
+flask db migrate -m "Added columns to Patient_log table"
 flask db upgrade

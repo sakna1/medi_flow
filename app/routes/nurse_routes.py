@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, jsonify, request,redirect,flash
 from flask_login import login_required
 from flask_login import current_user
-from app.models import PatientLog, Patient ,PatientReport,HospitalNotification
+from app.models import PatientLog, Patient ,PatientReport,HospitalNotification,DiseaseDesc,DoctorLog
 from app import db
 from flask import current_app
 import os
@@ -9,7 +9,8 @@ from werkzeug.utils import secure_filename
 from flask import url_for, send_from_directory
 from datetime import date ,datetime
 from sqlalchemy import func
-from app.gemini_ai import call_gemini_for_queue
+from app.gemini_ai import call_gemini_for_queue , calculate_age
+from app.wait_time_predictor import predict_wait_time
 
 
 nurse = Blueprint('nurse', __name__)
@@ -27,124 +28,113 @@ def editprofile():
     return render_template('nurse/editprofile.html',nurse_name=nurse_name)
 
 @nurse.route('/nurse/log_scan', methods=['POST'])
-@login_required
+#@login_required
 def log_scan():
-    # ... (Initial checks and log creation remain the same) ...
-    
-    # 1. Log created and committed as "Waiting" (This is OK, as you need the log entry for AI to see it)
+    # 1️⃣ Create and commit new log
+    patient_id = request.form.get("patient_id")
     log = PatientLog(
-        # ... (patient_id, nurse_id, etc.) ...
+        patient_id=patient_id,
+        #nurse_id=current_user.id,
+        nurse_id=9,
         status="Waiting",
         notes="Awaiting AI assignment"
     )
     db.session.add(log)
-    db.session.commit() # Commit the new log so AI sees it in the next step
+    db.session.commit()  # Commit so AI can see it
 
     try:
-        # STEP 2️⃣ & 3️⃣: Collect ALL currently waiting/assigned patients for AI to consider
+        # 2️⃣ Collect all waiting/assigned logs
         waiting_logs = PatientLog.query.filter(
             PatientLog.status.in_(["Waiting", "Assigned"])
         ).all()
-        
-        # Prepare list of patient IDs for AI re-evaluation (used inside the AI function now)
-        # We only need to call the AI once to get the full recalculated list
-        ai_full_result = call_gemini_for_queue(Patient.id)
-        
+
+        # 3️⃣ Call AI for queue re-evaluation
+        ai_full_result = call_gemini_for_queue(patient_id)
+
         if not ai_full_result or "error" in ai_full_result:
-            # If AI fails, change the newly created log to "Error" status and return error response
             log.status = "Error"
             log.notes = f"AI failed: {ai_full_result.get('error', 'Unknown AI error')}"
             db.session.commit()
-            print(f"AI failed for patient {Patient.id}: {ai_full_result}")
+            print(f"AI failed for patient {patient_id}: {ai_full_result}")
             return jsonify({
                 'message': 'AI failed to assign queue. Patient logged as waiting.',
                 'details': ai_full_result.get('error', 'Unknown error')
             }), 500
 
-        # STEP 4️⃣: Loop through the AI's LIST response and update relevant logs
+        # 4️⃣ Process AI results and predict wait times
         updated_patients = []
-        
-        # Get patient IDs from the logs in DB to map against AI results
         current_waiting_pids = [wl.patient_id for wl in waiting_logs]
+        today = date.today()
 
         for result_item in ai_full_result:
             pid = result_item.get("patient_id")
-
-            # Only process patients that are currently in the waiting list
             if pid in current_waiting_pids:
-                
-                # --- FIX FOR DataError & Value ERROR ---
-                # Safely extract and convert to integer or None
-                room_no_str = str(result_item.get("room_no")).strip() if result_item.get("room_no") else None
-                doctor_id_str = str(result_item.get("doctor_id")).strip() if result_item.get("doctor_id") else None
-                raw_est_time = str(result_item.get('estimated_wait_time', '0')).strip()
+                # Safely extract numeric values
+                room_no = int(result_item.get("room_no") or 0)
+                doctor_id = int(result_item.get("doctor_id") or 0)
+                queue_number = int(result_item.get("queue_number") or 0)
 
-                # Clean '20 mins' → 20 (This is where the previous error occurred)
-                try:
-                    # Extracts ALL digits and converts to int. If no digits, defaults to 0.
-                    est_wait_time = int(''.join(filter(str.isdigit, raw_est_time)) or 0)
-                except ValueError:
-                    est_wait_time = 0
-
-                # Safely convert room_no/doctor_id to integer (or None if conversion fails)
-                try:
-                    room_no = int(room_no_str) if room_no_str and room_no_str.isdigit() else None
-                except ValueError:
-                    room_no = None
-
-                try:
-                    doctor_id = int(doctor_id_str) if doctor_id_str and doctor_id_str.isdigit() else None
-                except ValueError:
-                    doctor_id = None
-                
-                # Queue number should be safe if AI provides a number, default to None or 0
-                queue_number = result_item.get("queue_number")
-                if not isinstance(queue_number, int):
-                    queue_number = 0
-                # --- FIX END ---
-                
-                # Update the patient's latest log (This logic is correct for updating the current status)
+                # Update latest log
                 log_entry = (
                     PatientLog.query.filter_by(patient_id=pid)
                     .order_by(PatientLog.scan_time.desc())
                     .first()
                 )
-                
+
                 if log_entry:
                     log_entry.room_no = room_no
                     log_entry.doctor_id = doctor_id
                     log_entry.queue_number = queue_number
                     log_entry.status = "Assigned"
-                    log_entry.notes = f"AI updated | Est. wait: {est_wait_time} mins"
-                    # DO NOT COMMIT INSIDE THE LOOP. Commit outside for efficiency and transactional safety.
+                    log_entry.notes = "AI updated (queue reordered)"
+
+                    # 🔹 Predict wait time for this patient
+                    patient = log_entry.patient
+                    disease = DiseaseDesc.query.get(patient.disease_id)
+                    queue_length = PatientLog.query.filter(
+                        PatientLog.status.in_(["Waiting", "Assigned"]),
+                        PatientLog.patient.has(disease_id=patient.disease_id)
+                    ).count()
+                    available_doctors = DoctorLog.query.filter_by(log_date=today).count()
+                    staff_on_duty = 4  # Replace with dynamic staff if you track it
+
+                    predicted_wait = predict_wait_time(
+                        age=calculate_age(patient.dob),
+                        disease_id=patient.disease_id,
+                        queue_length=queue_length,
+                        disease_est_time=disease.est_time,
+                        treatment_status=patient.treatment_status,
+                        available_doctors=available_doctors,
+                        staff_on_duty=staff_on_duty
+                    )
+
+                    log_entry.estimated_wait_time = predicted_wait
+
                     db.session.add(log_entry)
 
                     updated_patients.append({
                         "patient_id": pid,
                         "room_no": room_no,
                         "queue_number": queue_number,
-                        "estimated_wait_time": est_wait_time
+                        "predicted_wait_time": predicted_wait
                     })
 
-        # COMMIT ALL CHANGES AT ONCE
+        # 5️⃣ Commit all updates
         db.session.commit()
 
     except Exception as e:
-        # If any other error occurs (like DB connection failure), this catches it.
         print(f"Fatal error during AI update process: {e}")
-        # Rollback the initial log creation to prevent stuck "Waiting" patients.
         db.session.rollback()
         return jsonify({
             'message': 'Fatal System error during AI queue assignment. All changes rolled back.',
             'details': str(e)
         }), 500
 
-    # STEP 5️⃣: Response to nurse — include the latest patient assignment
-    latest_patient = next((p for p in updated_patients if p["patient_id"] == Patient.id), None)
-    
-    # ... (Return jsonify success block remains the same)
+    # 6️⃣ Prepare response for nurse
+    latest_patient = next((p for p in updated_patients if p["patient_id"] == int(patient_id)), None)
+
     return jsonify({
-        'message': 'Scan logged and AI updated all queues successfully.',
+        'message': 'Scan logged, AI updated queues, and wait times predicted successfully.',
         'assigned_patient': latest_patient,
         'total_patients_recalculated': len(updated_patients)
     })
