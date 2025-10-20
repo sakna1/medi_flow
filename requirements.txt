@@ -13,4 +13,5 @@ Pillow
 google-generativeai
 joblib
 numpy
-
+scikit-learn
+pandas
