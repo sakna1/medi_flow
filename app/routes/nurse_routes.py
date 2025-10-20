@@ -35,6 +35,8 @@ def log_scan():
     data = request.get_json()
     qr_data = data.get("qr_data")
 
+    print(f"DEBUG: Received QR Data: [{qr_data}] (Type: {type(qr_data)})")
+
     if not qr_data:
         return jsonify({"message": "QR data missing"}), 400
 
