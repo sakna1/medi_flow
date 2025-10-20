@@ -30,7 +30,7 @@ def editprofile():
 @nurse.route('/nurse/log_scan', methods=['POST'])
 @login_required
 def log_scan():
-    # 1️⃣ Create and commit new log
+    # 1️⃣ Get data and robustly clean QR data
     data = request.get_json()
     qr_data = data.get("qr_data")
 
@@ -38,33 +38,45 @@ def log_scan():
         return jsonify({"message": "QR data missing"}), 400
 
     try:
-        patient_id = int(qr_data)  # Convert QR data to integer
+        qr_data_str = str(qr_data)
+        # Use regex to strip all non-digit characters (Handles 'P103C', 'ID:103', etc.)
+        numeric_part = re.sub(r'\D', '', qr_data_str) 
+        
+        if not numeric_part:
+            raise ValueError("QR code contains no numerical digits.")
+            
+        patient_id = int(numeric_part)
+
     except ValueError:
-        return jsonify({"message": "Invalid QR code"}), 400
-
-    log = PatientLog(
-        patient_id=patient_id,
-        nurse_id=current_user.id,       
-        status="Waiting",
-        notes="Awaiting AI assignment"
-    )
-    db.session.add(log)
-    db.session.commit()  # Commit so AI can see it
-
+        # This covers empty strings, non-numeric data, and cleaning failures.
+        return jsonify({"message": "Invalid QR code. Please ensure it contains a valid patient ID."}), 400
+    
+    # Start transaction
     try:
-        # 2️⃣ Collect all waiting/assigned logs
+        # 2️⃣ Create and commit new log
+        log = PatientLog(
+            patient_id=patient_id,
+            nurse_id=current_user.id,        
+            status="Waiting",
+            notes="Awaiting AI assignment"
+        )
+        db.session.add(log)
+        db.session.commit()  # Commit so AI can see the new patient in the queue
+
+        # 3️⃣ Collect all waiting/assigned logs and Call AI for queue re-evaluation
+        # Note: You should filter waiting_logs to only include logs relevant to the *current day/session*
         waiting_logs = PatientLog.query.filter(
             PatientLog.status.in_(["Waiting", "Assigned"])
         ).all()
+        current_waiting_pids = [wl.patient_id for wl in waiting_logs]
 
-        # 3️⃣ Call AI for queue re-evaluation
-        ai_full_result = call_gemini_for_queue(patient_id)
+        # Call AI service
+        ai_full_result = call_gemini_for_queue(patient_id) 
 
         if not ai_full_result or "error" in ai_full_result:
             log.status = "Error"
             log.notes = f"AI failed: {ai_full_result.get('error', 'Unknown AI error')}"
             db.session.commit()
-            print(f"AI failed for patient {patient_id}: {ai_full_result}")
             return jsonify({
                 'message': 'AI failed to assign queue. Patient logged as waiting.',
                 'details': ai_full_result.get('error', 'Unknown error')
@@ -72,18 +84,19 @@ def log_scan():
 
         # 4️⃣ Process AI results and predict wait times
         updated_patients = []
-        current_waiting_pids = [wl.patient_id for wl in waiting_logs]
         today = date.today()
 
         for result_item in ai_full_result:
             pid = result_item.get("patient_id")
+            
+            # Only process patients currently in the waiting list
             if pid in current_waiting_pids:
-                # Safely extract numeric values
+                # Safely extract numeric values (or default to 0)
                 room_no = int(result_item.get("room_no") or 0)
                 doctor_id = int(result_item.get("doctor_id") or 0)
                 queue_number = int(result_item.get("queue_number") or 0)
 
-                # Update latest log
+                # Get the latest log entry for this patient
                 log_entry = (
                     PatientLog.query.filter_by(patient_id=pid)
                     .order_by(PatientLog.scan_time.desc())
@@ -98,27 +111,33 @@ def log_scan():
                     log_entry.notes = "AI updated (queue reordered)"
 
                     # 🔹 Predict wait time for this patient
-                    patient = log_entry.patient
-                    disease = DiseaseDesc.query.get(patient.disease_id)
+                    patient = log_entry.patient # Assumes a patient relationship is defined
+                    
+                    # Ensure foreign key lookups are safe
+                    disease = DiseaseDesc.query.get(patient.disease_id) if patient and patient.disease_id else None
+                    disease_est_time = disease.est_time if disease else 15 # Default est time
+                    
+                    # Recalculate queue length specific to the disease/context
                     queue_length = PatientLog.query.filter(
                         PatientLog.status.in_(["Waiting", "Assigned"]),
                         PatientLog.patient.has(disease_id=patient.disease_id)
                     ).count()
+                    
                     available_doctors = DoctorLog.query.filter_by(log_date=today).count()
-                    staff_on_duty = 4  # Replace with dynamic staff if you track it
+                    staff_on_duty = 4 # Use a constant or retrieve dynamically
 
                     predicted_wait = predict_wait_time(
                         age=calculate_age(patient.dob),
                         disease_id=patient.disease_id,
                         queue_length=queue_length,
-                        disease_est_time=disease.est_time,
+                        disease_est_time=disease_est_time,
                         treatment_status=patient.treatment_status,
                         available_doctors=available_doctors,
-                        staff_on_duty=staff_on_duty
+                        staff_on_duty=staff_on_duty,
+                        scan_time=log_entry.scan_time # Use the actual scan time
                     )
 
                     log_entry.estimated_wait_time = predicted_wait
-
                     db.session.add(log_entry)
 
                     updated_patients.append({
@@ -140,7 +159,7 @@ def log_scan():
         }), 500
 
     # 6️⃣ Prepare response for nurse
-    latest_patient = next((p for p in updated_patients if p["patient_id"] == int(patient_id)), None)
+    latest_patient = next((p for p in updated_patients if p["patient_id"] == patient_id), None)
 
     return jsonify({
         'message': 'Scan logged, AI updated queues, and wait times predicted successfully.',
