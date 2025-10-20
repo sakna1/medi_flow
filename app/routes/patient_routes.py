@@ -62,7 +62,7 @@ def notification():
 @login_required
 def qr_code():
     login_patient_id = Patient.query.filter_by(id=current_user.id).first()
-    qr_data = login_patient_id.username
+    qr_data = str(login_patient_id.id)
     # Generate QR code
     qr = qrcode.QRCode(
         version=1,
