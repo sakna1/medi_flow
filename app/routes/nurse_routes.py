@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, jsonify, request,redirect,flash
 from flask_login import login_required
 from flask_login import current_user
-from app.models import PatientLog, Patient ,PatientReport,HospitalNotification,DiseaseDesc,DoctorLog
+from app.models import PatientLog, Patient ,PatientReport,HospitalNotification ,DiseaseDesc,DoctorLog
 from app import db
 from flask import current_app
 import os
@@ -31,34 +31,37 @@ def editprofile():
 @nurse.route('/nurse/log_scan', methods=['POST'])
 @login_required
 def log_scan():
-    # 1️⃣ Get data and robustly clean QR data
+    # 1️⃣ Get data via JSON, looking for 'patient_id'
     data = request.get_json()
-    qr_data = data.get("qr_data")
+    patient_id_data = data.get("patient_id") # RECOMMENDED: Look for 'patient_id'
+    
+    # Fallback/Old Key check
+    if not patient_id_data:
+        patient_id_data = data.get("qr_data")
 
-    if not qr_data:
-        return jsonify({"message": "QR data missing"}), 400
+    if not patient_id_data:
+        # Returns 400 if the key is missing from the JSON payload
+        return jsonify({"message": "Data missing. Please scan a QR code."}), 400
 
     try:
-        qr_data_str = str(qr_data)
+        qr_data_str = str(patient_id_data)
         
-        # LOGGING THE RAW DATA (Already done, confirming 'captain')
-        print(f"DEBUG: Received RAW QR Data: [{qr_data_str}]")
-        
-        # Use regex to strip all non-digit characters
+        # Robust cleaning: Extract all digits
         numeric_part = re.sub(r'\D', '', qr_data_str) 
         
-        # LOGGING THE CLEANED PART
+        # DEBUG LOGS (Confirming the failure point)
+        print(f"DEBUG: Received RAW QR Data: [{qr_data_str}]")
         print(f"DEBUG: Cleaned Numeric Part: [{numeric_part}]") 
         
         if not numeric_part:
-            # This is triggered if qr_data was "captain" or ""
-            raise ValueError("QR code contains no numerical digits or is empty.")
+            # Triggered by input like 'captain' or an empty string
+            raise ValueError("QR code contains no numerical digits.")
             
         patient_id = int(numeric_part)
 
     except ValueError:
-        # Returns the 400 error message you are seeing
-        return jsonify({"message": "Invalid QR code. Please ensure it contains a valid patient ID."}), 400
+        # Returns 400 if the data fails cleaning/conversion
+        return jsonify({"message": "Invalid QR code. Please ensure it contains a valid patient ID number."}), 400
     
     # Start transaction
     try:
@@ -70,7 +73,7 @@ def log_scan():
             notes="Awaiting AI assignment"
         )
         db.session.add(log)
-        db.session.commit()  # Commit so AI can see the new patient
+        db.session.commit()
 
         # 3️⃣ Collect all waiting/assigned logs and Call AI for queue re-evaluation
         waiting_logs = PatientLog.query.filter(
@@ -114,7 +117,7 @@ def log_scan():
                     log_entry.status = "Assigned"
                     log_entry.notes = "AI updated (queue reordered)"
 
-                    # 🔹 Predict wait time for this patient
+                    # 🔹 Predict wait time for this patient (Requires proper model loading/imports)
                     patient = log_entry.patient 
                     disease = DiseaseDesc.query.get(patient.disease_id) if patient and patient.disease_id else None
                     disease_est_time = disease.est_time if disease else 15 
@@ -125,7 +128,7 @@ def log_scan():
                     ).count()
                     
                     available_doctors = DoctorLog.query.filter_by(log_date=today).count()
-                    staff_on_duty = 4 # Use a constant or retrieve dynamically
+                    staff_on_duty = 4 
 
                     predicted_wait = predict_wait_time(
                         age=calculate_age(patient.dob),
@@ -167,6 +170,7 @@ def log_scan():
         'assigned_patient': latest_patient,
         'total_patients_recalculated': len(updated_patients)
     })
+
 
 @nurse.route("/upload_report/<int:patient_id>", methods=["POST"])
 @login_required
