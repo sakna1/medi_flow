@@ -21,10 +21,6 @@ if "available_doctors" in df.columns:
 else:
     df["available_doctors"] = 1
 
-if "staff_on_duty" in df.columns:
-    df["staff_on_duty"] = df["staff_on_duty"].fillna(df["staff_on_duty"].median())
-else:
-    df["staff_on_duty"] = 1
 
 # 3. Derived features
 df['queue_per_doctor'] = df['queue_length'] / df['available_doctors']
@@ -33,7 +29,7 @@ df['weighted_est_time'] = df['disease_est_time'] * (df['treatment_status'] + 1)
 # 4. Define features
 feature_cols = [
     "age", "disease_id", "queue_length", "disease_est_time",
-    "treatment_status", "available_doctors", "staff_on_duty",
+    "treatment_status", "available_doctors",
     "queue_per_doctor", "weighted_est_time"
 ]
 

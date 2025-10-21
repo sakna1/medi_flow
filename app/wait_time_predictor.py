@@ -17,7 +17,7 @@ except Exception as e:
 
 
 def predict_wait_time(age, disease_id, queue_length, disease_est_time,
-                      treatment_status, available_doctors, staff_on_duty):
+                      treatment_status, available_doctors):
     """
     Predict waiting time using the trained model.
     Automatically computes derived features: queue_per_doctor, weighted_est_time, day_of_week.
@@ -42,8 +42,7 @@ def predict_wait_time(age, disease_id, queue_length, disease_est_time,
         queue_length,
         disease_est_time,
         treatment_status,
-        available_doctors,
-        staff_on_duty,
+        available_doctors,       
         queue_per_doctor,
         weighted_est_time,
         scan_hour,

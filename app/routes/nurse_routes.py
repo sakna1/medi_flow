@@ -28,78 +28,100 @@ def editprofile():
     nurse_name = current_user.username 
     return render_template('nurse/editprofile.html',nurse_name=nurse_name)
 
-def reorder_today_queue():
-    """Reorder today's patients by ID — only updates queue_number"""
-    try:
-        today = date.today()
-        today_patients = PatientLog.query.filter(
-            db.func.date(PatientLog.scan_time) == today
-        ).order_by(PatientLog.id.asc()).all()
+def update_doctor_room_counts():
+    """Recalculate patient count per room and update doctor_log."""
+    today = date.today()
+    rooms = DoctorLog.query.filter_by(log_date=today).all()
 
-        if not today_patients:
-            print("⚠️ No patients found for today.")
-            return
+    for room in rooms:
+        count = PatientLog.query.filter_by(room_no=room.room_no, status='waiting').count()
+        room.patients_per_room = count
+    db.session.commit()
 
-        print(f"🩺 Reordering queue for {len(today_patients)} patients on {today}")
-
-        for idx, patient_log in enumerate(today_patients, start=1):
-            patient_log.queue_number = idx
-            patient_log.notes = "AI reordered (only queue number updated)"
-            patient_log.updated_at = datetime.now()
-
-        db.session.commit()
-        print("✅ Queue reorder completed successfully.")
-
-    except Exception as e:
-        db.session.rollback()
-        print(f"❌ Error during reorder_today_queue: {e}")
-
-
+# File: app/routes/nurse_routes.py
 @nurse.route('/nurse/log_scan', methods=['POST'])
 @login_required
 def log_scan():
-    """Handles nurse QR scan and patient logging"""
+    """Handles nurse QR scan, patient log creation, AI reorder, and wait time prediction."""
     try:
         data = request.get_json()
         raw_qr = str(data.get("qr_data", "")).strip()
         print(f"DEBUG: Received RAW QR Data: [{raw_qr}]")
 
-        # ✅ Clean numeric part but keep alpha if exists (e.g. 101A)
+        # --- Clean QR ---
         cleaned_id = ''.join(ch for ch in raw_qr if ch.isalnum())
-        print(f"DEBUG: Cleaned QR Code: [{cleaned_id}]")
-
-        # Ensure valid numeric patient_id
         if not cleaned_id.isdigit():
-            print("⚠️ QR contains letters, skipping patient ID extraction.")
             return jsonify({"error": "Invalid QR code format"}), 400
 
         patient_id = int(cleaned_id)
-
-        # 🔍 Check if patient exists
         patient = Patient.query.get(patient_id)
         if not patient:
             return jsonify({"error": f"Patient {patient_id} not found"}), 404
 
-        # ✅ Create new log entry
+        # --- Create new log ---
         new_log = PatientLog(
             patient_id=patient_id,
             scan_time=datetime.now(),
-            status="Scanned",
-            notes="Logged by nurse via QR scan",
+            status="waiting",
+            notes="Scanned by nurse"
         )
-
         db.session.add(new_log)
         db.session.commit()
 
-        # ✅ Trigger reorder only for today’s new entries
-        reorder_today_queue()
+        print("✅ Patient scanned successfully. Calling AI reorder...")
 
-        return jsonify({"message": f"Patient {patient_id} logged successfully"}), 200
+        # --- 1️⃣ AI Queue Reorder ---
+        from app.gemini_ai import call_gemini_for_queue
+        ai_response = call_gemini_for_queue(patient_id)
+        if "error" in ai_response:
+            print("⚠️ AI reorder failed:", ai_response["error"])
+            return jsonify({"error": "AI queue reorder failed"}), 500
+
+        # --- 2️⃣ Update Database from AI Output ---
+        for record in ai_response:
+            log = PatientLog.query.filter_by(patient_id=record["patient_id"]).order_by(PatientLog.id.desc()).first()
+            if log:
+                log.room_no = record["room_no"]
+                log.doctor_id = record["doctor_id"]
+                log.queue_number = record["queue_number"]
+        db.session.commit()
+
+        print("✅ Queue reordered. Updating Doctor Log counts...")
+
+        # --- 3️⃣ Update patients_per_room ---
+        update_doctor_room_counts()
+
+        # --- 4️⃣ Predict Estimated Wait Time ---
+        from app.wait_time_predictor import predict_wait_time
+        disease_id = new_log.disease_id or 1
+        queue_length = PatientLog.query.filter_by(room_no=new_log.room_no, status='waiting').count()
+        doctor_count = DoctorLog.query.filter_by(room_no=new_log.room_no).count()
+        disease_est_time = 10  # default (can pull from DiseaseDesc table)
+        est_time = predict_wait_time(
+            age=calculate_age(patient.dob),
+            disease_id=disease_id,
+            queue_length=queue_length,
+            disease_est_time=disease_est_time,
+            treatment_status=patient.treatment_status,
+            available_doctors=doctor_count
+        )
+        new_log.estimated_wait_time = est_time
+        db.session.commit()
+
+        print(f"✅ Wait time predicted: {est_time} mins")
+
+        return jsonify({
+            "message": f"Patient {patient_id} logged successfully",
+            "room_no": new_log.room_no,
+            "queue_number": new_log.queue_number,
+            "estimated_wait_time": est_time
+        }), 200
 
     except Exception as e:
         db.session.rollback()
-        print(f"Fatal error during AI update process: {e}")        
+        print(f"❌ Error in log_scan: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
+
 
 
 @nurse.route("/upload_report/<int:patient_id>", methods=["POST"])
