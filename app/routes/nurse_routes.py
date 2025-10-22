@@ -29,14 +29,16 @@ def editprofile():
     return render_template('nurse/editprofile.html',nurse_name=nurse_name)
 
 def update_doctor_room_counts():
-    """Recalculate patient count per room and update doctor_log."""
+    """Recalculate and update how many patients are waiting per doctor's room."""
     today = date.today()
-    rooms = DoctorLog.query.filter_by(log_date=today).all()
+    doctor_logs = DoctorLog.query.filter_by(log_date=today).all()
 
-    for room in rooms:
-        count = PatientLog.query.filter_by(room_no=room.room_no, status='waiting').count()
-        room.patients_per_room = count
+    for dlog in doctor_logs:
+        count = PatientLog.query.filter_by(room_no=dlog.room_no, status="waiting").count()
+        dlog.patients_per_room = count
+
     db.session.commit()
+    print("✅ DoctorLog patient counts updated.")    
 
 # File: app/routes/nurse_routes.py
 @nurse.route('/nurse/log_scan', methods=['POST'])
@@ -61,6 +63,7 @@ def log_scan():
         # --- Create new log ---
         new_log = PatientLog(
             patient_id=patient_id,
+            nurse_id=current_user.id,
             scan_time=datetime.now(),
             status="waiting",
             notes="Scanned by nurse"
@@ -71,11 +74,12 @@ def log_scan():
         print("✅ Patient scanned successfully. Calling AI reorder...")
 
         # --- 1️⃣ AI Queue Reorder ---
-        from app.gemini_ai import call_gemini_for_queue
         ai_response = call_gemini_for_queue(patient_id)
-        if "error" in ai_response:
-            print("⚠️ AI reorder failed:", ai_response["error"])
-            return jsonify({"error": "AI queue reorder failed"}), 500
+
+        # Validate AI output
+        if not isinstance(ai_response, list):
+            print("⚠️ AI did not return a valid list:", ai_response)
+            return jsonify({"error": "Invalid AI response from model"}), 500
 
         # --- 2️⃣ Update Database from AI Output ---
         for record in ai_response:
@@ -84,19 +88,19 @@ def log_scan():
                 log.room_no = record["room_no"]
                 log.doctor_id = record["doctor_id"]
                 log.queue_number = record["queue_number"]
-        db.session.commit()
 
-        print("✅ Queue reordered. Updating Doctor Log counts...")
+        db.session.flush()
+        print("✅ Queue updates flushed to DB")
 
-        # --- 3️⃣ Update patients_per_room ---
+        # --- 3️⃣ Update Doctor Log patient counts ---
         update_doctor_room_counts()
 
         # --- 4️⃣ Predict Estimated Wait Time ---
-        from app.wait_time_predictor import predict_wait_time
         disease_id = new_log.disease_id or 1
         queue_length = PatientLog.query.filter_by(room_no=new_log.room_no, status='waiting').count()
         doctor_count = DoctorLog.query.filter_by(room_no=new_log.room_no).count()
-        disease_est_time = 10  # default (can pull from DiseaseDesc table)
+        disease_est_time = 10  # default placeholder (can pull from DiseaseDesc table)
+
         est_time = predict_wait_time(
             age=calculate_age(patient.dob),
             disease_id=disease_id,
@@ -105,6 +109,7 @@ def log_scan():
             treatment_status=patient.treatment_status,
             available_doctors=doctor_count
         )
+
         new_log.estimated_wait_time = est_time
         db.session.commit()
 
