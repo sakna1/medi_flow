@@ -29,16 +29,20 @@ def editprofile():
     return render_template('nurse/editprofile.html',nurse_name=nurse_name)
 
 def update_doctor_room_counts():
-    """Recalculate and update how many patients are waiting per doctor's room."""
+    """Recalculate and update how many patients are waiting per doctor's room (for today's date)."""
     today = date.today()
     doctor_logs = DoctorLog.query.filter_by(log_date=today).all()
 
     for dlog in doctor_logs:
-        count = PatientLog.query.filter_by(room_no=dlog.room_no, status="waiting").count()
+        count = PatientLog.query.filter(
+            PatientLog.room_no == dlog.room_no,
+            PatientLog.status == "waiting",
+            db.func.date(PatientLog.scan_time) == today
+        ).count()
         dlog.patients_per_room = count
 
     db.session.commit()
-    print("✅ DoctorLog patient counts updated.")    
+    print("✅ DoctorLog patient counts updated for today.") 
 
 # File: app/routes/nurse_routes.py
 @nurse.route('/nurse/log_scan', methods=['POST'])
@@ -60,6 +64,17 @@ def log_scan():
         if not patient:
             return jsonify({"error": f"Patient {patient_id} not found"}), 404
 
+        # --- Prevent duplicate queue entry for today ---
+        today = date.today()
+        existing_log = PatientLog.query.filter(
+            PatientLog.patient_id == patient_id,
+            PatientLog.status.in_(["waiting", "assigned"]),
+            db.func.date(PatientLog.scan_time) == today
+        ).first()
+
+        if existing_log:
+            return jsonify({"message": f"Patient {patient_id} is already queued for today"}), 400
+
         # --- Create new log ---
         new_log = PatientLog(
             patient_id=patient_id,
@@ -77,29 +92,35 @@ def log_scan():
         ai_response = call_gemini_for_queue(patient_id)
 
         # Validate AI output
-        if not isinstance(ai_response, list):
-            print("⚠️ AI did not return a valid list:", ai_response)
+        if not isinstance(ai_response, list) or not ai_response:
+            print("⚠️ Invalid AI response:", ai_response)
             return jsonify({"error": "Invalid AI response from model"}), 500
 
         # --- 2️⃣ Update Database from AI Output ---
         for record in ai_response:
-            log = PatientLog.query.filter_by(patient_id=record["patient_id"]).order_by(PatientLog.id.desc()).first()
+            log = PatientLog.query.filter_by(patient_id=record["patient_id"])\
+                .order_by(PatientLog.id.desc()).first()
             if log:
-                log.room_no = record["room_no"]
-                log.doctor_id = record["doctor_id"]
-                log.queue_number = record["queue_number"]
+                log.room_no = record.get("room_no")
+                log.doctor_id = record.get("doctor_id")
+                log.queue_number = record.get("queue_number")
+                log.status = "assigned"
 
         db.session.flush()
-        print("✅ Queue updates flushed to DB")
+        print("✅ Queue numbers updated from AI output.")
 
-        # --- 3️⃣ Update Doctor Log patient counts ---
+        # --- 3️⃣ Update Doctor Log counts (today only) ---
         update_doctor_room_counts()
 
         # --- 4️⃣ Predict Estimated Wait Time ---
         disease_id = new_log.disease_id or 1
-        queue_length = PatientLog.query.filter_by(room_no=new_log.room_no, status='waiting').count()
-        doctor_count = DoctorLog.query.filter_by(room_no=new_log.room_no).count()
-        disease_est_time = 10  # default placeholder (can pull from DiseaseDesc table)
+        queue_length = PatientLog.query.filter(
+            PatientLog.room_no == new_log.room_no,
+            PatientLog.status == 'waiting',
+            db.func.date(PatientLog.scan_time) == today
+        ).count()
+        doctor_count = DoctorLog.query.filter_by(room_no=new_log.room_no, log_date=today).count()
+        disease_est_time = 10  # placeholder, can fetch from DiseaseDesc table
 
         est_time = predict_wait_time(
             age=calculate_age(patient.dob),
@@ -113,7 +134,7 @@ def log_scan():
         new_log.estimated_wait_time = est_time
         db.session.commit()
 
-        print(f"✅ Wait time predicted: {est_time} mins")
+        print(f"✅ Wait time predicted successfully: {est_time} mins")
 
         return jsonify({
             "message": f"Patient {patient_id} logged successfully",
