@@ -36,7 +36,8 @@ def update_doctor_room_counts():
     for dlog in doctor_logs:
         count = PatientLog.query.filter(
             PatientLog.room_no == dlog.room_no,
-            PatientLog.status == "waiting",
+            PatientLog.doctor_id == dlog.doctor_id,
+            PatientLog.status.in_(["waiting", "assigned"]),
             db.func.date(PatientLog.scan_time) == today
         ).count()
         dlog.patients_per_room = count
@@ -54,7 +55,7 @@ def log_scan():
         raw_qr = str(data.get("qr_data", "")).strip()
         print(f"DEBUG: Received RAW QR Data: [{raw_qr}]")
 
-        # --- Clean QR ---
+        # --- Clean and validate QR ---
         cleaned_id = ''.join(ch for ch in raw_qr if ch.isalnum())
         if not cleaned_id.isdigit():
             return jsonify({"error": "Invalid QR code format"}), 400
@@ -64,42 +65,52 @@ def log_scan():
         if not patient:
             return jsonify({"error": f"Patient {patient_id} not found"}), 404
 
-        # --- Prevent duplicate queue entry for today ---
         today = date.today()
+
+        # --- Prevent duplicate queue entry for today ---
         existing_log = PatientLog.query.filter(
             PatientLog.patient_id == patient_id,
             PatientLog.status.in_(["waiting", "assigned"]),
             db.func.date(PatientLog.scan_time) == today
         ).first()
-
         if existing_log:
             return jsonify({"message": f"Patient {patient_id} is already queued for today"}), 400
 
-        # --- Create new log ---
+        # --- Get latest queue number for today ---
+        last_log = PatientLog.query.filter(
+            db.func.date(PatientLog.scan_time) == today
+        ).order_by(PatientLog.queue_number.desc()).first()
+
+        next_queue_no = (last_log.queue_number + 1) if last_log and last_log.queue_number else 1
+
+        # --- Create new patient log ---
         new_log = PatientLog(
             patient_id=patient_id,
             nurse_id=current_user.id,
             scan_time=datetime.now(),
+            queue_number=next_queue_no,
             status="waiting",
             notes="Scanned by nurse"
         )
         db.session.add(new_log)
         db.session.commit()
 
-        print("✅ Patient scanned successfully. Calling AI reorder...")
+        print(f"✅ Patient {patient_id} scanned. Queue number: {next_queue_no}. Calling AI reorder...")
 
-        # --- 1️⃣ AI Queue Reorder ---
+        # --- 1️⃣ AI Queue Reorder (Today only) ---
         ai_response = call_gemini_for_queue(patient_id)
 
-        # Validate AI output
         if not isinstance(ai_response, list) or not ai_response:
             print("⚠️ Invalid AI response:", ai_response)
             return jsonify({"error": "Invalid AI response from model"}), 500
 
-        # --- 2️⃣ Update Database from AI Output ---
+        # --- 2️⃣ Update Queue Numbers from AI Output (Today only) ---
         for record in ai_response:
-            log = PatientLog.query.filter_by(patient_id=record["patient_id"])\
-                .order_by(PatientLog.id.desc()).first()
+            log = PatientLog.query.filter(
+                PatientLog.patient_id == record["patient_id"],
+                db.func.date(PatientLog.scan_time) == today
+            ).order_by(PatientLog.id.desc()).first()
+
             if log:
                 log.room_no = record.get("room_no")
                 log.doctor_id = record.get("doctor_id")
@@ -109,22 +120,26 @@ def log_scan():
         db.session.flush()
         print("✅ Queue numbers updated from AI output.")
 
-        # --- 3️⃣ Update Doctor Log counts (today only) ---
+        # --- 3️⃣ Update Doctor Room Counts ---
         update_doctor_room_counts()
 
         # --- 4️⃣ Predict Estimated Wait Time ---
-        disease_id = new_log.disease_id or 1
         queue_length = PatientLog.query.filter(
             PatientLog.room_no == new_log.room_no,
-            PatientLog.status == 'waiting',
+            PatientLog.status.in_(["waiting", "assigned"]),
             db.func.date(PatientLog.scan_time) == today
         ).count()
-        doctor_count = DoctorLog.query.filter_by(room_no=new_log.room_no, log_date=today).count()
-        disease_est_time = 10  # placeholder, can fetch from DiseaseDesc table
+
+        doctor_count = DoctorLog.query.filter_by(
+            room_no=new_log.room_no,
+            log_date=today
+        ).count()
+
+        disease_est_time = 10  # Replace with lookup from DiseaseDesc if available
 
         est_time = predict_wait_time(
             age=calculate_age(patient.dob),
-            disease_id=disease_id,
+            disease_id=new_log.disease_id or 1,
             queue_length=queue_length,
             disease_est_time=disease_est_time,
             treatment_status=patient.treatment_status,
@@ -147,8 +162,6 @@ def log_scan():
         db.session.rollback()
         print(f"❌ Error in log_scan: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
-
-
 
 @nurse.route("/upload_report/<int:patient_id>", methods=["POST"])
 @login_required
