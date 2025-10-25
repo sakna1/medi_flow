@@ -99,7 +99,7 @@ def log_scan():
             return jsonify({"error": "Invalid QR code format"}), 400
 
         patient_id = int(cleaned_id)
-        patient = Patient.query.get(patient_id)
+        patient = Patient.query.filter_by(id=patient_id).first()
         if not patient:
             return jsonify({"error": f"Patient {patient_id} not found"}), 404
 
@@ -260,7 +260,7 @@ def log_scan():
         print("✅ Per-patient waiting times and doctor room totals updated for today.")
 
         # fetch updated new_log to return
-        updated_log = PatientLog.query.get(new_log.id)
+        updated_log = PatientLog.query.filter_by(id=new_log.id).first()
 
         return jsonify({
             "message": f"Patient {patient_id} logged successfully",
