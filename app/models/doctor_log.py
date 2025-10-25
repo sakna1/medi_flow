@@ -9,6 +9,7 @@ class DoctorLog(db.Model):
     doctor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) 
     room_no = db.Column(db.String(10), nullable=False)
     patients_per_room = db.Column(db.Integer, nullable=True)
+    total_est_time = db.Column(db.Float, default=0.0) 
 
     # relationship (if you have Doctor model defined)
     doctor = db.relationship('User', foreign_keys=[doctor_id], backref='doctor_activity_logs')
