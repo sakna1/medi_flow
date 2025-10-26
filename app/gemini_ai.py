@@ -127,7 +127,11 @@ Return ONLY JSON list in this format:
 
         # --- Apply AI results to DB ---
         for item in ai_result:
-            patient_log = PatientLog.query.filter_by(patient_id=item["patient_id"]).first()
+            patient_log = PatientLog.query.filter(
+                PatientLog.patient_id == item["patient_id"],
+                db.func.date(PatientLog.scan_time) == today
+            ).order_by(PatientLog.id.desc()).first()
+
             if patient_log:
                 patient_log.room_no = item["room_no"]
                 patient_log.doctor_id = item["doctor_id"]
