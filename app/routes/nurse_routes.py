@@ -28,93 +28,55 @@ def editprofile():
     nurse_name = current_user.username 
     return render_template('nurse/editprofile.html',nurse_name=nurse_name)
 
-def get_disease_est_time(disease_id):
-    """Fallback service time lookup from DiseaseDesc (minutes)."""
-    if not disease_id:
-        return None
-    d = DiseaseDesc.query.get(disease_id)
-    if d and getattr(d, "est_time_minutes", None) is not None:
-        return d.est_time_minutes
-    return None
 
-
-def update_doctor_room_counts_and_totals():
-    """Recalculate patients_per_room and total_est_time for today's doctor logs."""
+def update_doctor_room_counts():
+    """Recalculate and update how many patients are waiting per doctor's room (for today's date)."""
     today = date.today()
     doctor_logs = DoctorLog.query.filter_by(log_date=today).all()
 
     for dlog in doctor_logs:
-        # count waiting+assigned today in this room + doctor
         count = PatientLog.query.filter(
             PatientLog.room_no == dlog.room_no,
-            PatientLog.doctor_id == dlog.doctor_id,
-            PatientLog.status.in_(["waiting", "assigned"]),
-            func.date(PatientLog.scan_time) == today
+            PatientLog.status == "waiting",
+            db.func.date(PatientLog.scan_time) == today
         ).count()
-
-        # sum the service_time for waiting+assigned patients (we store service_time on record if available,
-        # otherwise we will have put a fallback in estimated_wait_time calc step below)
-        total_est_time = db.session.query(
-            func.coalesce(func.sum(PatientLog.service_time), 0)
-        ).filter(
-            PatientLog.room_no == dlog.room_no,
-            PatientLog.doctor_id == dlog.doctor_id,
-            PatientLog.status.in_(["waiting", "assigned"]),
-            func.date(PatientLog.scan_time) == today
-        ).scalar()
-
-        # if your PatientLog model doesn't have 'service_time' column, compute from estimated_wait_time fallback:
-        if total_est_time is None or total_est_time == 0:
-            # Sum fallback: sum service_time field if exists else sum individual_service_time that we saved to estimated_service_time_column
-            total_est_time = db.session.query(
-                func.coalesce(func.sum(
-                    func.coalesce(PatientLog.service_time, PatientLog.estimated_service_time, 0)
-                ), 0)
-            ).filter(
-                PatientLog.room_no == dlog.room_no,
-                PatientLog.doctor_id == dlog.doctor_id,
-                PatientLog.status.in_(["waiting", "assigned"]),
-                func.date(PatientLog.scan_time) == today
-            ).scalar() or 0
-
         dlog.patients_per_room = count
-        # ensure DoctorLog has a 'total_est_time' column (float/int)
-        dlog.total_est_time = int(total_est_time or 0)
 
     db.session.commit()
+    print("✅ DoctorLog patient counts updated for today.")
 
 
 @nurse.route('/nurse/log_scan', methods=['POST'])
 @login_required
 def log_scan():
-    """Handles nurse QR scan, patient log creation, AI reorder, and per-patient wait-time calculation."""
+    """Handles nurse QR scan, patient log creation, AI reorder, and wait time prediction."""
     try:
-        data = request.get_json() or {}
+        data = request.get_json()
         raw_qr = str(data.get("qr_data", "")).strip()
         print(f"DEBUG: Received RAW QR Data: [{raw_qr}]")
 
-        # --- Clean and validate QR ---
+        # --- Clean QR ---
         cleaned_id = ''.join(ch for ch in raw_qr if ch.isalnum())
         if not cleaned_id.isdigit():
             return jsonify({"error": "Invalid QR code format"}), 400
 
         patient_id = int(cleaned_id)
-        patient = Patient.query.filter_by(id=patient_id).first()
+        patient = Patient.query.get(patient_id)
         if not patient:
             return jsonify({"error": f"Patient {patient_id} not found"}), 404
 
+        # --- Prevent duplicate queue entry for today ---
         today = date.today()
-
-        # --- Prevent duplicate queue entry for today (active entries only) ---
         existing_log = PatientLog.query.filter(
             PatientLog.patient_id == patient_id,
             PatientLog.status.in_(["waiting", "assigned"]),
-            func.date(PatientLog.scan_time) == today
+            db.func.date(PatientLog.scan_time) == today
         ).first()
+
         if existing_log:
             return jsonify({"message": f"Patient {patient_id} is already queued for today"}), 400
 
-        # --- Create initial PatientLog (no queue_number, AI will assign authoritative queue_number) ---
+        # --- Create new log ---
         new_log = PatientLog(
             patient_id=patient_id,
             nurse_id=current_user.id,
@@ -124,150 +86,62 @@ def log_scan():
         )
         db.session.add(new_log)
         db.session.commit()
-        print(f"✅ Patient {patient_id} scanned and saved as waiting (id={new_log.id}). Preparing AI payload...")
 
-        # --- Prepare AI input: all today's patients + today's doctor rooms ---
-        patients_today = PatientLog.query.filter(func.date(PatientLog.scan_time) == today).all()
-        doctor_logs = DoctorLog.query.filter_by(log_date=today).all()
+        print("✅ Patient scanned successfully. Calling AI reorder...")
 
-        ai_input = {
-            "patients": [
-                {
-                    "patient_id": p.patient_id,
-                    "age": calculate_age(p.patient.dob) if p.patient and getattr(p.patient, "dob", None) else 0,
-                    "treatment_status": getattr(p.patient, "treatment_status", None),
-                    # include current stored service/estimated fields if present:
-                    "estimated_wait_time": p.estimated_wait_time or 0,
-                    "queue_number": p.queue_number,
-                    "scan_time": p.scan_time.isoformat() if p.scan_time else None,
-                    "disease_id": p.disease_id
-                } for p in patients_today
-            ],
-            "rooms": [
-                {
-                    "doctor_id": d.doctor_id,
-                    "room_no": d.room_no,
-                    "patients_per_room": d.patients_per_room or 0,
-                    "total_est_time": int(getattr(d, "total_est_time", 0) or 0)
-                } for d in doctor_logs
-            ]
-        }
+        # --- 1️⃣ AI Queue Reorder ---
+        ai_response = call_gemini_for_queue(patient_id)
 
-        # --- Call Gemini AI: it must return a list of items for today's patients with room_no, doctor_id, queue_number
-        ai_response = call_gemini_for_queue(ai_input)
-
-        if not isinstance(ai_response, list):
-            print("⚠️ AI returned non-list:", ai_response)
+        # Validate AI output
+        if not isinstance(ai_response, list) or not ai_response:
+            print("⚠️ Invalid AI response:", ai_response)
             return jsonify({"error": "Invalid AI response from model"}), 500
-        if not ai_response:
-            print("⚠️ AI returned empty list")
-            return jsonify({"error": "AI returned empty assignment list"}), 500
 
-        # --- Apply AI results to today's patient logs ---
-        # We'll also capture per-patient service_time (duration) if AI returns it (preferred).
-        # Allowed ai service fields: 'service_time', 'estimated_service_time', 'predicted_service_time'
-        ai_map = {int(item["patient_id"]): item for item in ai_response if "patient_id" in item}
-
-        # Apply assignments only to today's logs
-        for pid, item in ai_map.items():
-            log = PatientLog.query.filter(
-                PatientLog.patient_id == pid,
-                func.date(PatientLog.scan_time) == today
-            ).order_by(PatientLog.id.desc()).first()
-
-            if not log:
-                continue
-
-            # update assignment
-            log.room_no = item.get("room_no") or log.room_no
-            log.doctor_id = item.get("doctor_id") or log.doctor_id
-            log.queue_number = item.get("queue_number") or log.queue_number
-            # mark as assigned but still countable
-            log.status = "assigned"
-
-            # record service_time if AI provided (minutes)
-            service_time = None
-            for key in ("service_time", "estimated_service_time", "predicted_service_time", "service_duration"):
-                if key in item and item.get(key) is not None:
-                    try:
-                        service_time = int(item.get(key))
-                        break
-                    except Exception:
-                        # try float then int
-                        try:
-                            service_time = int(float(item.get(key)))
-                            break
-                        except Exception:
-                            service_time = None
-
-            # fallback: try disease lookup, else default (10)
-            if service_time is None:
-                service_time = get_disease_est_time(log.disease_id) or 10
-
-            # store service_time on the record for later cumulative calculations.
-            # If your PatientLog doesn't have 'service_time' column, create it in a migration.
-            # We'll try to set attribute regardless; if column missing, we will still use service_time in memory calculations.
-            try:
-                log.service_time = service_time
-            except Exception:
-                # no column present; we'll still use local variable service_time in calculations below
-                pass
-
-            # reset per-patient estimated_wait_time for now; we'll set cumulative below
-            log.estimated_wait_time = 0
+        # --- 2️⃣ Update Database from AI Output ---
+        for record in ai_response:
+            log = PatientLog.query.filter_by(patient_id=record["patient_id"])\
+                .order_by(PatientLog.id.desc()).first()
+            if log:
+                log.room_no = record.get("room_no")
+                log.doctor_id = record.get("doctor_id")
+                log.queue_number = record.get("queue_number")
+                log.status = "assigned"
 
         db.session.flush()
-        print("✅ AI assignments applied to today's logs (room, doctor, queue_number, service_time).")
+        print("✅ Queue numbers updated from AI output.")
 
-        # --- For each room, compute per-patient waiting times (cumulative of service_time of patients ahead) ---
-        today_rooms = db.session.query(PatientLog.room_no).filter(
-            func.date(PatientLog.scan_time) == today,
-            PatientLog.room_no.isnot(None)
-        ).distinct().all()
-        # today_rooms is list of tuples; normalize
-        room_list = [r[0] for r in today_rooms if r and r[0]]
+        # --- 3️⃣ Update Doctor Log counts (today only) ---
+        update_doctor_room_counts()
 
-        for room_no in room_list:
-            # fetch patients in this room for today ordered by queue_number asc
-            room_patients = PatientLog.query.filter(
-                PatientLog.room_no == room_no,
-                func.date(PatientLog.scan_time) == today,
-                PatientLog.status.in_(["waiting", "assigned"])
-            ).order_by(PatientLog.queue_number.asc(), PatientLog.scan_time.asc()).all()
+        # --- 4️⃣ Predict Estimated Wait Time ---
+        disease_id = new_log.disease_id or 1
+        queue_length = PatientLog.query.filter(
+            PatientLog.room_no == new_log.room_no,
+            PatientLog.status == 'waiting',
+            db.func.date(PatientLog.scan_time) == today
+        ).count()
+        doctor_count = DoctorLog.query.filter_by(room_no=new_log.room_no, log_date=today).count()
+        disease_est_time = 10  # placeholder, can fetch from DiseaseDesc table
 
-            cumulative = 0
-            # We'll compute service_time per patient reliably: either from DB column or fallback to disease/default
-            for p in room_patients:
-                # determine service_time value
-                svc = getattr(p, "service_time", None)
-                if svc is None:
-                    # try any stored estimated_service_time or fallback to disease table
-                    svc = getattr(p, "estimated_service_time", None) or get_disease_est_time(p.disease_id) or 10
-                # p is at position: waiting_time = cumulative (sum of service_time of prior patients)
-                p.estimated_wait_time = int(cumulative)
-                cumulative += int(svc or 0)
+        est_time = predict_wait_time(
+            age=calculate_age(patient.dob),
+            disease_id=disease_id,
+            queue_length=queue_length,
+            disease_est_time=disease_est_time,
+            treatment_status=patient.treatment_status,
+            available_doctors=doctor_count
+        )
 
-            # after loop, update DoctorLog.total_est_time for this room (sum of service_time remaining)
-            # find doctor log(s) matching the room for today, update their totals
-            total_for_room = int(cumulative)
-            # update all doctor_logs for that room (likely one)
-            dlogs = DoctorLog.query.filter_by(room_no=room_no, log_date=today).all()
-            for d in dlogs:
-                d.patients_per_room = len(room_patients)
-                d.total_est_time = total_for_room
-
+        new_log.estimated_wait_time = est_time
         db.session.commit()
-        print("✅ Per-patient waiting times and doctor room totals updated for today.")
 
-        # fetch updated new_log to return
-        updated_log = PatientLog.query.filter_by(id=new_log.id).first()
+        print(f"✅ Wait time predicted successfully: {est_time} mins")
 
         return jsonify({
             "message": f"Patient {patient_id} logged successfully",
-            "patient_id": updated_log.patient_id,
-            "room_no": updated_log.room_no,
-            "queue_number": updated_log.queue_number,
-            "estimated_wait_time": updated_log.estimated_wait_time
+            "room_no": new_log.room_no,
+            "queue_number": new_log.queue_number,
+            "estimated_wait_time": est_time
         }), 200
 
     except Exception as e:
