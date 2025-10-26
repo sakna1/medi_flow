@@ -36,7 +36,10 @@ def call_gemini_for_queue(new_patient_id):
         return {"error": f"Patient with ID {new_patient_id} not found."}
 
     # --- Collect all currently waiting/assigned logs ---
-    waiting_logs = PatientLog.query.filter(PatientLog.status.in_(["waiting", "assigned"])).all()
+    today = date.today()
+    waiting_logs = PatientLog.query.filter(
+    PatientLog.status.in_(["waiting", "assigned"]),
+    db.func.date(PatientLog.scan_time) == today).all()
 
     # --- Aggregate patient data ---
     patients_data = []

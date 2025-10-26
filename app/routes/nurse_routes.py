@@ -37,7 +37,7 @@ def update_doctor_room_counts():
     for dlog in doctor_logs:
         count = PatientLog.query.filter(
             PatientLog.room_no == dlog.room_no,
-            PatientLog.status == "waiting",
+            PatientLog.status.in_(["waiting", "assigned"]),
             db.func.date(PatientLog.scan_time) == today
         ).count()
         dlog.patients_per_room = count
