@@ -89,11 +89,12 @@
         <p><b>Queue No:</b> <span id="todayQueue">Loading...</span></p>
       </div>
       </div>
-      <div class="card">
+     <div class="card" id="queueCard">
         <div class="card-icon"><i class="bi bi-list-task"></i></div>
         <h3>Queue Notifications</h3>
-        <p>You are 5 patients away from being seen.</p>
-      </div>
+        <p id="queueText" style="white-space: pre-line;">Loading your queue status...</p>
+     </div>
+
       <div class="card">
         <div class="card-icon"><i class="bi bi-calendar-check"></i></div>
         <h3>Next Appointment Date</h3>
@@ -157,5 +158,6 @@
   <!-- JavaScript for Slideshow -->
   <script src="{{ url_for('static', filename='js/paitentdashboard.js') }}"></script> 
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/wait_time.js') }}"></script>
 </body>
 </html>

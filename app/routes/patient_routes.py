@@ -328,3 +328,57 @@ def view_notifications():
     ).order_by(HospitalNotification.notification_date.desc()).all()
 
     return render_template('patient/notification.html', notifications=notifications, user=current_user.username)
+
+
+@patient.route('/queue_status', methods=['GET'])
+@login_required
+def get_queue_status():
+    """Returns how many patients ahead and total estimated wait time for today's queue (per room)."""
+    try:
+        today = date.today()
+        start_of_day = datetime.combine(today, datetime.min.time())
+        end_of_day = datetime.combine(today, datetime.max.time())
+
+        # --- Get the logged-in patient's waiting log for today ---
+        current_log = (
+            PatientLog.query
+            .filter(
+                PatientLog.patient_id == current_user.id,
+                PatientLog.status == 'Waiting',
+                PatientLog.scan_time >= start_of_day,
+                PatientLog.scan_time <= end_of_day
+            )
+            .first()
+        )
+
+        if not current_log:
+            return jsonify({"message": "No active queue record for today"}), 404
+
+        # --- Filter patients waiting in the SAME ROOM for today ---
+        waiting_patients = (
+            PatientLog.query
+            .filter(
+                PatientLog.status == 'Waiting',
+                PatientLog.room_no == current_log.room_no,    # 🔥 room-specific queue
+                PatientLog.scan_time >= start_of_day,
+                PatientLog.scan_time <= end_of_day
+            )
+            .order_by(PatientLog.queue_number.asc())
+            .all()
+        )
+
+        # --- Find all patients ahead in the same room ---
+        patients_ahead = [p for p in waiting_patients if p.queue_number < current_log.queue_number]
+        num_ahead = len(patients_ahead)
+        total_estimated_time = sum(p.estimated_wait_time or 0 for p in patients_ahead)
+
+        return jsonify({
+            "room_no": current_log.room_no,
+            "patients_ahead": num_ahead,
+            "estimated_wait_time": total_estimated_time,  # in minutes
+            "message": f"Room {current_log.room_no}: You are {num_ahead} patients away."
+        })
+
+    except Exception as e:
+        print("❌ Error in /queue_status:", e)
+        return jsonify({"error": str(e)}), 500

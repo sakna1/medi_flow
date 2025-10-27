@@ -81,8 +81,7 @@ def log_scan():
             patient_id=patient_id,
             nurse_id=current_user.id,
             scan_time=datetime.now(),
-            status="waiting",
-            notes="Scanned by nurse"
+            status="waiting",            
         )
         db.session.add(new_log)
         db.session.commit()
@@ -137,6 +136,8 @@ def log_scan():
 
         print(f"✅ Wait time predicted successfully: {est_time} mins")
 
+        log_training_data(patient, new_log)
+
         return jsonify({
             "message": f"Patient {patient_id} logged successfully",
             "room_no": new_log.room_no,
@@ -148,6 +149,60 @@ def log_scan():
         db.session.rollback()
         print(f"❌ Error in log_scan: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
+
+
+def log_training_data(patient, new_log):
+    """Append scan + context data to ai_training_data.csv for AI model updates."""
+    import csv
+    import os
+    from datetime import date
+
+    try:
+        csv_path = os.path.join(os.getcwd(), "ai_training_data.csv")
+
+        # --- Compute derived values ---
+        queue_length = PatientLog.query.filter(
+            PatientLog.room_no == new_log.room_no,
+            PatientLog.status == 'waiting',
+            db.func.date(PatientLog.scan_time) == date.today()
+        ).count()
+
+        available_doctors = DoctorLog.query.filter_by(
+            room_no=new_log.room_no, log_date=date.today()
+        ).count()
+
+        disease_est_time = 10  # static placeholder (you can improve later)
+
+        # --- Collect log data matching model features ---
+        log_data = [
+            calculate_age(patient.dob),         # age
+            new_log.disease_id or 1,            # disease_id
+            queue_length,                       # queue_length
+            disease_est_time,                   # disease_est_time
+            1 if patient.treatment_status == "Active" else 0,  # numeric status
+            available_doctors,                  # available_doctors
+            new_log.estimated_wait_time or "",  # predicted wait time
+            new_log.scan_time.isoformat()       # timestamp
+        ]
+
+        header = [
+            "age", "disease_id", "queue_length", "disease_est_time",
+            "treatment_status", "available_doctors",
+            "predicted_wait_time", "scan_time"
+        ]
+
+        # --- Write or append to file ---
+        file_exists = os.path.isfile(csv_path)
+        with open(csv_path, mode="a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            if not file_exists:
+                writer.writerow(header)
+            writer.writerow(log_data)
+
+        print(f"✅ AI training data appended to {csv_path}")
+
+    except Exception as e:
+        print(f"⚠️ Failed to log AI training data: {e}")
 
 
 @nurse.route("/upload_report/<int:patient_id>", methods=["POST"])
