@@ -4,8 +4,8 @@ from app.models import Patient , PatientLog , User ,DiseaseDesc,HospitalNotifica
 import qrcode
 import io
 from zoneinfo import ZoneInfo
-from datetime import datetime, date, timezone 
-from sqlalchemy import cast, Date
+from datetime import datetime, date, timezone ,time ,timedelta
+from sqlalchemy import cast, Date ,func
 from app import db
 import pytz
 from flask_login import UserMixin
@@ -330,55 +330,41 @@ def view_notifications():
     return render_template('patient/notification.html', notifications=notifications, user=current_user.username)
 
 
-@patient.route('/queue_status', methods=['GET'])
+@patient.route('/get-waiting-time', methods=['GET'])
 @login_required
-def get_queue_status():
-    """Returns how many patients ahead and total estimated wait time for today's queue (per room)."""
-    try:
-        today = date.today()
-        start_of_day = datetime.combine(today, datetime.min.time())
-        end_of_day = datetime.combine(today, datetime.max.time())
+def get_waiting_time():
+    # Colombo timezone setup
+    colombo_tz = timezone("Asia/Colombo")
+    now_colombo = datetime.now(colombo_tz)
 
-        # --- Get the logged-in patient's waiting log for today ---
-        current_log = (
-            PatientLog.query
-            .filter(
-                PatientLog.patient_id == current_user.id,
-                PatientLog.status == 'Waiting',
-                PatientLog.scan_time >= start_of_day,
-                PatientLog.scan_time <= end_of_day
-            )
-            .first()
+    # Define start and end of the current local day
+    start_of_day = now_colombo.replace(hour=0, minute=0, second=0, microsecond=0)
+    end_of_day = start_of_day + timedelta(days=1)
+
+    # Convert to UTC (since DB stores scan_time in UTC)
+    start_utc = start_of_day.astimezone(timezone("UTC"))
+    end_utc = end_of_day.astimezone(timezone("UTC"))
+
+    # Query patient log
+    patient_log = (
+        PatientLog.query
+        .filter(
+            PatientLog.patient_id == current_user.id,
+            PatientLog.scan_time >= start_utc,
+            PatientLog.scan_time < end_utc,
+            func.lower(PatientLog.status).in_(["waiting", "assigned"])
         )
+        .order_by(PatientLog.id.desc())
+        .first()
+    )
 
-        if not current_log:
-            return jsonify({"message": "No active queue record for today"}), 404
-
-        # --- Filter patients waiting in the SAME ROOM for today ---
-        waiting_patients = (
-            PatientLog.query
-            .filter(
-                PatientLog.status == 'Waiting',
-                PatientLog.room_no == current_log.room_no,    # 🔥 room-specific queue
-                PatientLog.scan_time >= start_of_day,
-                PatientLog.scan_time <= end_of_day
-            )
-            .order_by(PatientLog.queue_number.asc())
-            .all()
-        )
-
-        # --- Find all patients ahead in the same room ---
-        patients_ahead = [p for p in waiting_patients if p.queue_number < current_log.queue_number]
-        num_ahead = len(patients_ahead)
-        total_estimated_time = sum(p.estimated_wait_time or 0 for p in patients_ahead)
-
+    if not patient_log:
         return jsonify({
-            "room_no": current_log.room_no,
-            "patients_ahead": num_ahead,
-            "estimated_wait_time": total_estimated_time,  # in minutes
-            "message": f"Room {current_log.room_no}: You are {num_ahead} patients away."
+            "waiting_time": None,
+            "message": "No active queue record found."
         })
 
-    except Exception as e:
-        print("❌ Error in /queue_status:", e)
-        return jsonify({"error": str(e)}), 500
+    return jsonify({
+        "waiting_time": patient_log.estimated_wait_time,
+        "message": "Estimated wait time fetched from database."
+    })
