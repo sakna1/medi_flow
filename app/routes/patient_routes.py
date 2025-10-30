@@ -5,8 +5,9 @@ import qrcode
 import io
 from zoneinfo import ZoneInfo
 from datetime import datetime, date, timezone ,time ,timedelta
-from sqlalchemy import cast, Date ,func
+from sqlalchemy import cast, Date ,func,text
 from app import db
+import pytz
 import pytz
 from flask_login import UserMixin
 from sqlalchemy import or_
@@ -333,20 +334,17 @@ def view_notifications():
 @patient.route('/get-waiting-time', methods=['GET'])
 @login_required
 def get_waiting_time():
-    # Colombo timezone setup
-    colombo_tz = timezone("Asia/Colombo")
+
+    colombo_tz = pytz.timezone("Asia/Colombo")
     now_colombo = datetime.now(colombo_tz)
 
-    # Define start and end of the current local day
     start_of_day = now_colombo.replace(hour=0, minute=0, second=0, microsecond=0)
     end_of_day = start_of_day + timedelta(days=1)
+    start_utc = start_of_day.astimezone(pytz.UTC)
+    end_utc = end_of_day.astimezone(pytz.UTC)
 
-    # Convert to UTC (since DB stores scan_time in UTC)
-    start_utc = start_of_day.astimezone(timezone("UTC"))
-    end_utc = end_of_day.astimezone(timezone("UTC"))
-
-    # Query patient log
-    patient_log = (
+    # Get current active log (waiting or assigned)
+    current_log = (
         PatientLog.query
         .filter(
             PatientLog.patient_id == current_user.id,
@@ -358,13 +356,43 @@ def get_waiting_time():
         .first()
     )
 
-    if not patient_log:
+    if not current_log:
         return jsonify({
             "waiting_time": None,
-            "message": "No active queue record found."
-        })
+            "message": "No active queue record found for today."
+        }), 404
+
+    # Run SQL query to calculate total wait before current patient
+    sql = text("""
+        SELECT COALESCE(SUM(p2.estimated_wait_time), 0) AS total_wait_before
+        FROM patient_log p2
+        WHERE p2.room_no = :room_no
+          AND p2.scan_time::date = :today
+          AND p2.queue_number < :queue_number
+          AND LOWER(p2.status) IN ('waiting', 'assigned')
+    """)
+
+    result = db.session.execute(sql, {
+        "room_no": current_log.room_no,
+        "today": now_colombo.date(),
+        "queue_number": current_log.queue_number
+    }).fetchone()
+
+    total_wait_time = result.total_wait_before if result else 0
+
+    # Create friendly message
+    if total_wait_time == 0:
+        message = "You are next to meet the doctor!"
+    else:
+        message = f"Estimated waiting time before your turn: {total_wait_time} minutes."
 
     return jsonify({
-        "waiting_time": patient_log.estimated_wait_time,
-        "message": "Estimated wait time fetched from database."
+        "patient_id": current_user.id,
+        "room_no": current_log.room_no,
+        "queue_number": current_log.queue_number,
+        "estimated_wait_time": current_log.estimated_wait_time,
+        "waiting_time": total_wait_time,
+        "message": message
     })
+
+

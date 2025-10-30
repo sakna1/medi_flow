@@ -1,13 +1,14 @@
-
 async function loadWaitingTime() {
   const queueText = document.getElementById("queueText");
 
   try {
-    const response = await fetch("/patient/get-waiting-time");
+    const response = await fetch("/get-waiting-time");
     const data = await response.json();
 
     if (data.waiting_time === null) {
-      queueText.textContent = "No active queue found or waiting time not set.";
+      queueText.textContent = "No active queue found.";
+    } else if (data.waiting_time <= 0) {
+      queueText.textContent = "It's your turn! Please proceed to the room.";
     } else {
       queueText.textContent = `Estimated Waiting Time: ${data.waiting_time} minutes`;
     }
@@ -17,9 +18,8 @@ async function loadWaitingTime() {
   }
 }
 
-// load once
+// Refresh every 15 seconds
+setInterval(loadWaitingTime, 15000);
+
+// Initial load
 loadWaitingTime();
-
-// refresh every 30 seconds
-setInterval(loadWaitingTime, 30000);
-

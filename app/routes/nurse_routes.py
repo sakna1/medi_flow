@@ -158,7 +158,7 @@ def log_training_data(patient, new_log):
     from datetime import date
 
     try:
-        csv_path = os.path.join(os.getcwd(), "ai_training_data.csv")
+        csv_path = os.path.join(os.getcwd(), "patient_log.csv")
 
         # --- Compute derived values ---
         queue_length = PatientLog.query.filter(
