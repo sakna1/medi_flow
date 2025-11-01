@@ -6,6 +6,7 @@ from app.models import Patient , PatientLog ,PatientReport,DiseaseDesc,DoctorLog
 from datetime import datetime,date
 from flask import url_for, send_from_directory
 from sqlalchemy import cast, Date
+import pytz
 
 doctor = Blueprint('doctor', __name__)
 
@@ -46,13 +47,18 @@ def start_appointment(patient_id):
     log = PatientLog.query.filter_by(patient_id=patient_id, end_time=None).order_by(PatientLog.id.desc()).first()
     if not log:
         return jsonify({"error": "No active log found"}), 404
-    
-    today = date.today()
-    if log.scan_time and log.scan_time != today:
+
+    colombo_tz = pytz.timezone("Asia/Colombo")
+    today_colombo = datetime.now(colombo_tz).date()
+
+    # --- Convert UTC scan_time to Colombo time before comparing ---
+    scan_time_local = log.scan_time.replace(tzinfo=pytz.utc).astimezone(colombo_tz).date()
+
+    if scan_time_local != today_colombo:
         return jsonify({"error": "Scan time is not today"}), 400
 
     log.start_time = datetime.utcnow()
-    log.scan_time = today  # set to today if not set yet
+    log.status = "In Consultation"
     db.session.commit()
     return jsonify({"message": "Appointment started!", "scan_time": str(log.scan_time)})
 
@@ -62,15 +68,25 @@ def complete_appointment(patient_id):
     log = PatientLog.query.filter_by(patient_id=patient_id, end_time=None).order_by(PatientLog.id.desc()).first()
     if not log:
         return jsonify({"error": "No active log found"}), 404
-    
-    today = date.today()
-    if log.scan_time and log.scan_time != today:
+
+    colombo_tz = pytz.timezone("Asia/Colombo")
+    today_colombo = datetime.now(colombo_tz).date()
+
+    # --- Convert UTC scan_time to Colombo time before comparing ---
+    scan_time_local = log.scan_time.replace(tzinfo=pytz.utc).astimezone(colombo_tz).date()
+
+    print("DEBUG Scan Time UTC:", log.scan_time)
+    print("DEBUG Scan Time Local:", scan_time_local)
+    print("DEBUG Today Colombo:", today_colombo)
+
+    if scan_time_local != today_colombo:
         return jsonify({"error": "Scan time is not today"}), 400
 
     log.end_time = datetime.utcnow()
-    log.scan_time = today  # ensure today's date
+    log.status = "completed"
     db.session.commit()
     return jsonify({"message": "Appointment completed!", "scan_time": str(log.scan_time)})
+
 
 @doctor.route("/update_patient/<int:patient_id>", methods=["POST"])
 def update_patient(patient_id):
@@ -258,6 +274,31 @@ def hospital_updates():
         "updates": [u.updates for u in updates]
     })
     
+
+@doctor.route('/get_patient_reports/<int:patient_id>', methods=['GET'])
+def get_patient_reports(patient_id):
+    try:
+        # Example query: fetch all reports related to the patient
+        reports = PatientReport.query.filter_by(patient_id=patient_id).all()
+
+        if not reports:
+            return jsonify({"reports": []}), 200
+
+        report_data = [
+            {
+                "id": report.id,
+                "report_name": report.report_name,
+                "file_path": report.file_path
+            }
+            for report in reports
+        ]
+
+        return jsonify({"reports": report_data}), 200
+
+    except Exception as e:
+        print("Error fetching reports:", e)
+        return jsonify({"error": "Server error"}), 500
+
 
 
 

@@ -67,6 +67,11 @@ def log_scan():
 
         # --- Prevent duplicate queue entry for today ---
         today = date.today()
+        if not patient.next_appointment_date or patient.next_appointment_date.date() != today:
+            return jsonify({
+        "message": f"Patient {patient_id} has no appointment scheduled for today"
+        }), 400
+
         existing_log = PatientLog.query.filter(
             PatientLog.patient_id == patient_id,
             PatientLog.status.in_(["waiting", "assigned"]),
@@ -81,7 +86,8 @@ def log_scan():
             patient_id=patient_id,
             nurse_id=current_user.id,
             scan_time=datetime.now(),
-            status="waiting",            
+            status="waiting",  
+            disease_id =patient.disease_id,          
         )
         db.session.add(new_log)
         db.session.commit()
