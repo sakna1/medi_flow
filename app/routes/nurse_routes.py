@@ -67,7 +67,7 @@ def log_scan():
 
         # --- Prevent duplicate queue entry for today ---
         today = date.today()
-        if not patient.next_appointment_date or patient.next_appointment_date.date() != today:
+        if not patient.next_appointment_date or patient.next_appointment_date != today:
             return jsonify({
         "message": f"Patient {patient_id} has no appointment scheduled for today"
         }), 400
