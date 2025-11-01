@@ -50,7 +50,7 @@ def call_gemini_for_queue(new_patient_id):
 
         # Get disease estimated time
         disease = DiseaseDesc.query.get(log.disease_id)
-        disease_time = disease.estimated_time if disease else 0
+        disease_time = disease.est_time if disease else 0
 
         # Track total estimated load per room
         if log.room_no:
