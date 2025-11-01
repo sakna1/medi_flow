@@ -5,7 +5,7 @@ from app import db
 from app.models import Patient , PatientLog ,PatientReport,DiseaseDesc,DoctorLog,HospitalNotification
 from datetime import datetime,date
 from flask import url_for, send_from_directory
-from sqlalchemy import cast, Date
+from sqlalchemy import cast, Date ,func
 import pytz
 
 doctor = Blueprint('doctor', __name__)
@@ -44,49 +44,70 @@ def save_next_appointment(patient_id):
     
 @doctor.route("/start_appointment/<int:patient_id>", methods=["POST"])
 def start_appointment(patient_id):
-    log = PatientLog.query.filter_by(patient_id=patient_id, end_time=None).order_by(PatientLog.id.desc()).first()
-    if not log:
-        return jsonify({"error": "No active log found"}), 404
-
     colombo_tz = pytz.timezone("Asia/Colombo")
     today_colombo = datetime.now(colombo_tz).date()
 
-    # --- Convert UTC scan_time to Colombo time before comparing ---
-    scan_time_local = log.scan_time.replace(tzinfo=pytz.utc).astimezone(colombo_tz).date()
+    # --- Fetch latest log with today's scan_time (Colombo time) ---
+    log = (
+        PatientLog.query
+        .filter(
+            PatientLog.patient_id == patient_id,
+            PatientLog.end_time.is_(None),
+            func.date(
+                func.timezone('Asia/Colombo', func.timezone('UTC', PatientLog.scan_time))
+            ) == today_colombo
+        )
+        .order_by(PatientLog.id.desc())
+        .first()
+    )
 
-    if scan_time_local != today_colombo:
-        return jsonify({"error": "Scan time is not today"}), 400
+    if not log:
+        return jsonify({"error": "No active log found for today"}), 404
 
+    # --- Update start time and status ---
     log.start_time = datetime.utcnow()
     log.status = "In Consultation"
     db.session.commit()
-    return jsonify({"message": "Appointment started!", "scan_time": str(log.scan_time)})
+
+    return jsonify({
+        "message": "Appointment started!",
+        "scan_time": str(log.scan_time)
+    })
 
 
 @doctor.route("/complete_appointment/<int:patient_id>", methods=["POST"])
 def complete_appointment(patient_id):
-    log = PatientLog.query.filter_by(patient_id=patient_id, end_time=None).order_by(PatientLog.id.desc()).first()
-    if not log:
-        return jsonify({"error": "No active log found"}), 404
-
     colombo_tz = pytz.timezone("Asia/Colombo")
+
+    # --- Get today's date in Colombo ---
     today_colombo = datetime.now(colombo_tz).date()
 
-    # --- Convert UTC scan_time to Colombo time before comparing ---
-    scan_time_local = log.scan_time.replace(tzinfo=pytz.utc).astimezone(colombo_tz).date()
+    # --- Fetch latest log with today's scan time (Colombo) ---
+    log = (
+        PatientLog.query
+        .filter(
+            PatientLog.patient_id == patient_id,
+            PatientLog.end_time.is_(None),
+            func.date(
+                func.timezone('Asia/Colombo', func.timezone('UTC', PatientLog.scan_time))
+            ) == today_colombo
+        )
+        .order_by(PatientLog.id.desc())
+        .first()
+    )
 
-    print("DEBUG Scan Time UTC:", log.scan_time)
-    print("DEBUG Scan Time Local:", scan_time_local)
-    print("DEBUG Today Colombo:", today_colombo)
+    if not log:
+        return jsonify({"error": "No active log found for today"}), 404
 
-    if scan_time_local != today_colombo:
-        return jsonify({"error": "Scan time is not today"}), 400
-
+    # --- Complete appointment ---
     log.end_time = datetime.utcnow()
     log.status = "completed"
     db.session.commit()
-    return jsonify({"message": "Appointment completed!", "scan_time": str(log.scan_time)})
 
+    return jsonify({
+        "message": "Appointment completed!",
+        "scan_time": str(log.scan_time)
+    })
 
 @doctor.route("/update_patient/<int:patient_id>", methods=["POST"])
 def update_patient(patient_id):
@@ -300,5 +321,36 @@ def get_patient_reports(patient_id):
         return jsonify({"error": "Server error"}), 500
 
 
+@doctor.route("/save-note", methods=["POST"])
+@login_required
+def save_note():
+    data = request.get_json()
+    log_id = data.get("log_id")
+    notes = data.get("notes")
 
+    if not log_id:
+        return jsonify({"message": "Missing log_id"}), 400
+
+    log = PatientLog.query.get(log_id)
+    if not log:
+        return jsonify({"message": "Log not found"}), 404
+
+    log.notes = notes   
+    db.session.commit()
+
+    colombo_tz = pytz.timezone("Asia/Colombo")
+    end_local = log.end_time.astimezone(colombo_tz).isoformat() if log.end_time else None
+
+    return jsonify({
+        "message": "Notes updated successfully!",
+        "log": {
+            "id": log.id,
+            "scan_time": log.scan_time.isoformat() if log.scan_time else None,
+            "end_time_utc": log.end_time.isoformat() if log.end_time else None,
+            "end_time": end_local,
+            "doctor_name": f"{log.doctor.first_name} {log.doctor.last_name}" if log.doctor else None,
+            "notes": log.notes,
+            "room_no": log.room_no
+        }
+    })
 

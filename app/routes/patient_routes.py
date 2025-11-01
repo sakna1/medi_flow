@@ -172,39 +172,6 @@ def visit_history_api(patient_id):
 
     return jsonify({"logs": logs_data, "today": date.today().isoformat()})
 
-@patient.route("/save-note", methods=["POST"])
-def save_note():
-    data = request.get_json()
-    log_id = data.get("log_id")
-    notes = data.get("notes")
-
-    if not log_id:
-        return jsonify({"message": "Missing log_id"}), 400
-
-    log = PatientLog.query.get(log_id)
-    if not log:
-        return jsonify({"message": "Log not found"}), 404
-
-    log.notes = notes
-    # mark appointment as closed
-    log.end_time = datetime.now(timezone.utc) 
-    db.session.commit()
-
-    colombo_tz = pytz.timezone("Asia/Colombo")
-    end_local = log.end_time.astimezone(colombo_tz).isoformat() if log.end_time else None
-
-    return jsonify({
-        "message": "Notes updated successfully!",
-        "log": {
-            "id": log.id,
-            "scan_time": log.scan_time.isoformat() if log.scan_time else None,
-            "end_time_utc": log.end_time.isoformat() if log.end_time else None,
-            "end_time": end_local,
-            "doctor_name": f"{log.doctor.first_name} {log.doctor.last_name}" if log.doctor else None,
-            "notes": log.notes,
-            "room_no": log.room_no
-        }
-    })
         
 @patient.route('/dashboard/today-appointment')
 @login_required
