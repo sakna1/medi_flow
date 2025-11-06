@@ -386,6 +386,41 @@ def create_notification():
 
     return render_template('create_notification.html')
 
+@nurse.route('/nurse/register', methods=['GET', 'POST'])
+#@login_required
+def register_patient():
+    if current_user.role != 'Nurse':
+        return "Access denied", 403
+
+    if request.method == 'POST':
+        user = Patient(
+            username=request.form.get('username'),
+            email=request.form.get('email'),
+            first_name=request.form.get('first_name'),
+            last_name=request.form.get('last_name'),
+            gender=request.form.get('gender'),
+            phone=request.form.get('phone'),
+            emergency_contact_name=request.form.get('emergency_contact_name'),
+            emergency_phone=request.form.get('emergency_contact_phone'),
+            dob=request.form.get('date_of_birth'),
+            marital_status=request.form.get('marital_status'),
+            address=request.form.get('address'),
+            nic=request.form.get('nic'),
+            disease_id=request.form.get('disease'),
+            description=request.form.get('disease_description'),
+            blood_type=request.form.get('blood'),
+            treatment_status=request.form.get('treatment_status'),
+            next_appointment_date=request.form.get('appoinmentdate'),
+        )
+
+        user.set_password(request.form.get('password'))
+
+        db.session.add(user)
+        db.session.commit()
+        flash("Patient registered successfully.")
+        return redirect(url_for('nurse.dashboard'))
+
+    return render_template('register.html')
     
 
   

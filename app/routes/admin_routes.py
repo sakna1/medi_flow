@@ -49,7 +49,7 @@ def dashboard():
 # @login_required
 def register_user():
     # Only Admins and Nurses can access
-    if current_user.role not in ['Admin', 'Nurse']:
+    if current_user.role not in ['admin', 'nurse']:
         return "Access denied", 403
 
     if request.method == 'POST':
@@ -73,6 +73,7 @@ def register_user():
                 description=request.form.get('disease_description'),
                 blood_type=request.form.get('blood'),
                 treatment_status=request.form.get('treatment_status'),
+                next_appointment_date=request.form.get('appoinmentdate'),
             )
         else:
             user = User(
@@ -328,7 +329,7 @@ def staff_workload_report():
             func.count(PatientLog.id).label("patients")
         )
         .join(PatientLog, PatientLog.doctor_id == User.id)
-        .filter(User.role == "Doctor")
+        .filter(User.role == "doctor")
     )
 
     # Apply date filter if provided

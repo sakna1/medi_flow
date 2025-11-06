@@ -114,8 +114,8 @@
      <h3 id ="reporth3">Patient Demographics Report</h3>
      <!-- Filters -->
      <div id="filters">
-         <label id="reportlbl">Start Date: <input type="date" id="startDate"></label>
-         <label id="reportlbl">End Date: <input type="date" id="endDate"></label>
+         <label id="reportlbl1">Start Date: <input type="date" id="startDate"></label>
+         <label id="reportlbl2">End Date: <input type="date" id="endDate"></label>
          <button id="loadreport" onclick="loadDemographicsReport()">Load Report</button>
      </div>
 
@@ -136,8 +136,8 @@
      <h3 id ="reporth3">Staff Workload Report</h3>
 
       <div id="filters">
-         <label id="reportlbl">Start Date: <input type="date" id="startDate"></label>
-         <label id="reportlbl">End Date: <input type="date" id="endDate"></label>
+         <label id="reportlblstart">Start Date: <input type="date" id="startDate"></label>
+         <label id="reportlblend">End Date: <input type="date" id="endDate"></label>
          <button id="loadreport"onclick="loadStaffWorkloadReport()">Load Report</button>
      </div>
      <canvas id="staffWorkloadChart" width="400" height="200"></canvas>
@@ -175,7 +175,6 @@
 
   <!-- Scripts -->
   <script src="{{ url_for('static', filename='js/script.js') }}"></script> 
-  <script src="{{ url_for('static', filename='js/doctordashboard.js') }}"></script> 
   <script src="{{ url_for('static', filename='js/adminprofile.js') }}"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 

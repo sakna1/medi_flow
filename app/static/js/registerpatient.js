@@ -27,14 +27,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const role = roleSelect.value;
 
     // Show Patient fields
-    if (role === "Patient") {
+    if (role === "patient") {
       medicalSection.style.display = "block";
     } else {
       medicalSection.style.display = "none";
     }
 
     // Show Doctor fields
-    if (role === "Doctor") {
+    if (role === "doctor") {
       doctorSection.style.display = "block";
       specializationInput.setAttribute("required", "required");
     } else {
@@ -48,6 +48,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Run on change
   roleSelect.addEventListener("change", toggleSections);
+   document.querySelector('form').addEventListener('submit', e => {
+   console.log('Form submitted!');
+  
+});
 });
 
 fetch('/api/diseases')

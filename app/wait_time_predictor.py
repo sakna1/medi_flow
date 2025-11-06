@@ -8,9 +8,7 @@ from datetime import datetime
 MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "wait_time_model.pkl")
 
 try:
-    model = joblib.load(MODEL_PATH)
-    print("✅ Wait time model loaded successfully.")
-    print(model.feature_names_in_)
+    model = joblib.load(MODEL_PATH)    
 except Exception as e:
     model = None
     print(f"⚠️ Failed to load wait time model: {e}")

@@ -3,10 +3,14 @@ from flask_login import login_required
 from flask_login import current_user
 from app import db
 from app.models import Patient , PatientLog ,PatientReport,DiseaseDesc,DoctorLog,HospitalNotification
-from datetime import datetime,date
+from datetime import datetime,date,time
 from flask import url_for, send_from_directory
 from sqlalchemy import cast, Date ,func
+from flask import send_file, abort, current_app
 import pytz
+from app import db
+from flask import current_app
+import os
 
 doctor = Blueprint('doctor', __name__)
 
@@ -180,39 +184,60 @@ def doctor_past_appointments():
 
 @doctor.route("/dashboard-data", methods=["GET"])
 def dashboard_data():
-    today = date.today()
+    # --- Setup timezone ---
+    colombo_tz = pytz.timezone("Asia/Colombo")
+    today_colombo = datetime.now(colombo_tz).date()
 
-    #Total appointments for today
-    today_count = PatientLog.query.filter(
-        db.func.date(PatientLog.scan_time) == today
-    ).count()
+    # --- Convert Colombo time range to UTC (for PostgreSQL UTC storage) ---
+    start_colombo = datetime.combine(today_colombo, time.min).replace(tzinfo=colombo_tz)
+    end_colombo = datetime.combine(today_colombo, time.max).replace(tzinfo=colombo_tz)
+    start_utc = start_colombo.astimezone(pytz.utc)
+    end_utc = end_colombo.astimezone(pytz.utc)
 
-    #Next appointment (status = Waiting, not started yet)
-    next_appointment = PatientLog.query.filter(
-        db.func.date(PatientLog.scan_time) == today,
-        PatientLog.status == "Waiting"
-    ).order_by(PatientLog.scan_time.asc()).first()
+    # --- Total appointments today (UTC range for Colombo day) ---
+    today_count = (
+        PatientLog.query
+        .filter(
+            PatientLog.scan_time >= start_utc,
+            PatientLog.scan_time <= end_utc
+        )
+        .count()
+    )
 
-    # ✅ Completed appointments today
-    completed_count = PatientLog.query.filter(
-        db.func.date(PatientLog.scan_time) == today,
-        PatientLog.status == "Completed"
-    ).count()
+    # --- Next appointment (Waiting / Assigned) ---
+    next_appointment = (
+        PatientLog.query
+        .filter(
+            PatientLog.scan_time >= start_utc,
+            PatientLog.scan_time <= end_utc,
+            PatientLog.doctor_id == current_user.id,
+            func.lower(PatientLog.status).in_(["waiting", "assigned"])
+        )
+        .order_by(PatientLog.queue_number.asc())
+        .first()
+    )
 
-    #Latest hospital update (for now hardcoded, can fetch from another table if you have one)
-    latest_update = "Radiology Unit closed on July 5th"  
-
+    # --- Completed appointments today ---
+    completed_count = (
+        db.session.query(func.count(PatientLog.id))
+        .filter(
+            PatientLog.scan_time >= start_utc,
+            PatientLog.scan_time <= end_utc,
+            PatientLog.doctor_id == current_user.id,
+            func.lower(PatientLog.status) == "completed"
+        )
+        .scalar()
+    )
+   
+    # --- Prepare response ---
     return jsonify({
         "today_appointments": today_count,
         "next_appointment": {
             "patient_id": next_appointment.patient_id if next_appointment else None,
-            "time": (
-                f"{next_appointment.start_time.strftime('%H:%M')} - {next_appointment.end_time.strftime('%H:%M')}"
-                if next_appointment and next_appointment.start_time and next_appointment.end_time else None
-            )
+            "queue_number": next_appointment.queue_number if next_appointment else None,
+            "scan_time": str(next_appointment.scan_time) if next_appointment else None
         },
-        "completed_appointments": completed_count,
-        "hospital_update": latest_update
+        "completed_appointments": completed_count or 0,        
     })
 
 
@@ -265,6 +290,7 @@ def assign_room():
     return jsonify({'success': True, 'message': f'Room {room_no} assigned successfully'})
 
 @doctor.route('/get-assigned-room', methods=['GET'])
+@login_required
 def get_assigned_room():
     from flask_login import current_user
     from datetime import datetime
@@ -353,4 +379,28 @@ def save_note():
             "room_no": log.room_no
         }
     })
+
+@doctor.route("/view_report/<int:report_id>")
+def view_report(report_id):
+    report = PatientReport.query.get_or_404(report_id)
+    file_path = report.file_path
+
+    # Case 1: file_path is absolute (e.g., C:/project/uploads/report1.pdf)
+    if os.path.isabs(file_path):
+        if not os.path.exists(file_path):
+            return abort(404, description=f"File not found: {file_path}")
+        return send_file(file_path)
+
+    # Case 2: file_path is relative to UPLOAD_FOLDER
+    folder = current_app.config.get("UPLOAD_FOLDER")
+    if not folder:
+        return abort(500, description="UPLOAD_FOLDER not configured")
+
+    filename = os.path.basename(file_path)
+    full_path = os.path.join(folder, filename)
+
+    if not os.path.exists(full_path):
+        return abort(404, description=f"File not found: {full_path}")
+
+    return send_file(full_path)
 

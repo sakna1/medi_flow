@@ -327,7 +327,7 @@ def get_waiting_time():
         return jsonify({
             "waiting_time": None,
             "message": "No active queue record found for today."
-        }), 404
+        })
 
     # Run SQL query to calculate total wait before current patient
     sql = text("""
