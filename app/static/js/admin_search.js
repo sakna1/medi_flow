@@ -55,7 +55,7 @@ function saveUser() {
     console.log("Updating user:", updatedData); // ✅ debug
 
     fetch(`/update_user/${userId}`, {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedData)
     })

@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models.user import User
+from app.models import User, Patient 
+from werkzeug.security import generate_password_hash
 from app import db
 from flask import session
 
@@ -15,16 +16,22 @@ def login():
     if request.method == 'POST':
         identifier = request.form['username']
         password = request.form['password']
-        user = User.query.filter((User.username == identifier) | (User.email == identifier)).first()
 
-        if not user:
-         flash("User not found. Please check your username or email.")
-        elif not user.check_password(password):
-         flash("Wrong password, try again.")
+        # Check by username OR email
+        user = User.query.filter(
+            (User.username == identifier) | (User.email == identifier)
+        ).first()
+
+        if user and user.check_password(password):
+            # ✅ Successful login
+            login_user(user)
+            session["login_type"] = "user"
+            return redirect(url_for(f"{user.role.lower()}.dashboard"))
         else:
-         login_user(user) 
-         session["login_type"] = "user"          
-         return redirect(url_for(f"{user.role.lower()}.dashboard"))
+            # ❌ Invalid credentials
+            flash("Invalid username or password.", "error")
+            return redirect(url_for('auth.login'))
+
     return render_template('login.html')
 
 @auth.route('/logout')
@@ -33,4 +40,32 @@ def logout():
     logout_user()
     session.pop("login_type", None) 
     return redirect(url_for('auth.login'))
+
+@auth.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        new_password = request.form.get('new_password')
+        hashed_password = generate_password_hash(new_password)
+
+        patient = Patient.query.filter_by(username=username).first()
+        user = User.query.filter_by(username=username).first()
+
+        if patient:
+            patient.password_hash = hashed_password
+            db.session.commit()
+            flash("Password changed successfully.", "success")
+            return redirect(url_for('auth.login'))
+
+        elif user:
+            user.password_hash = hashed_password
+            db.session.commit()
+            flash("Password changed successfully.", "success")
+            return redirect(url_for('auth.login'))
+
+        else:
+            flash("Invalid username or password.", "error")
+            return redirect(url_for('auth.forgot_password'))
+
+    return render_template('forgot_password.html')
     

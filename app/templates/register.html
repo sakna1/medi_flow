@@ -29,23 +29,22 @@
 
     <form method="POST" action="{{ url_for('admin.register_user') }}">
       <!-- Account Info -->
-      <h3 class="section-title">Account Information</h3>
-      <div class="form-group">
-        <label for="role">Role <span>*</span></label>
-        <select id="role" name="role" required>
-          {% if current_user.role|lower == 'nurse' %}
-            <option value="patient">Patient</option>
-          {% elif current_user.role|lower == 'admin' %}
-            <option value="doctor">Doctor</option>
-            <option value="nurse">Nurse</option>
-            <option value="admin">Admin</option>
-            <option value="patient">Patient</option>
-          {% elif current_user.role|lower == 'doctor' %}
-            <option value="doctor">Doctor</option>
-          {% endif %}
-        </select>
+    <h3 class="section-title">Account Information</h3> <div class="form-group">
+       <label for="role">Role <span>*</span></label> 
+       <select id="role" name="role" required> 
+        {% if current_user.role|lower == 'nurse' %} 
+        <option value="patient">Patient</option> 
+        {% elif current_user.role|lower == 'admin' %} 
+        <option value="doctor">Doctor</option>
+         <option value="nurse">Nurse</option> 
+         <option value="admin">Admin</option> 
+         <option value="patient">Patient</option>
+          {% elif current_user.role|lower == 'doctor' %} 
+          <option value="doctor">Doctor</option> 
+          {% endif %} 
+        </select> 
       </div>
-
+      
       <div class="form-group">
         <label for="username">Username <span>*</span></label>
         <input type="text" id="username" name="username" placeholder="Enter username" required>
