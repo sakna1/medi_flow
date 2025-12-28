@@ -30,3 +30,21 @@ else {
 // Load when page starts
 document.addEventListener("DOMContentLoaded", loadDashboard);
 
+function loadHospitalUpdates() {
+    fetch("/hospital-updates")
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById("hospitalUpdates");
+            if (data.updates && data.updates.length > 0) {
+                // Combine updates into HTML, each update on a new line
+                container.innerHTML = data.updates.map(u => `<p>${u}</p>`).join('');
+            } else {
+                container.textContent = "No updates today";
+            }
+        })
+        .catch(error => console.error("Error loading hospital updates:", error));
+}
+
+// Call it when page loads
+document.addEventListener("DOMContentLoaded", loadHospitalUpdates);
+

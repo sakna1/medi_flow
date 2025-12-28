@@ -55,7 +55,7 @@ def forgot_password():
             patient.password_hash = hashed_password
             db.session.commit()
             flash("Password changed successfully.", "success")
-            return redirect(url_for('auth.login'))
+            return redirect(url_for('patient.user_login'))
 
         elif user:
             user.password_hash = hashed_password
