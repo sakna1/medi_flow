@@ -50,8 +50,6 @@ def save_next_appointment(patient_id):
 def start_appointment(patient_id):
     colombo_tz = pytz.timezone("Asia/Colombo")
     today_colombo = datetime.now(colombo_tz).date()
-
-    # --- Fetch latest log with today's scan_time (Colombo time) ---
     log = (
         PatientLog.query
         .filter(
@@ -66,9 +64,7 @@ def start_appointment(patient_id):
     )
 
     if not log:
-        return jsonify({"error": "No active log found for today"}), 404
-
-    # --- Update start time and status ---
+        return jsonify({"error": "No active log found for today"}), 404   
     log.start_time = datetime.utcnow()
     log.status = "In Consultation"
     db.session.commit()
@@ -82,11 +78,7 @@ def start_appointment(patient_id):
 @doctor.route("/complete_appointment/<int:patient_id>", methods=["POST"])
 def complete_appointment(patient_id):
     colombo_tz = pytz.timezone("Asia/Colombo")
-
-    # --- Get today's date in Colombo ---
-    today_colombo = datetime.now(colombo_tz).date()
-
-    # --- Fetch latest log with today's scan time (Colombo) ---
+    today_colombo = datetime.now(colombo_tz).date()    
     log = (
         PatientLog.query
         .filter(
@@ -102,8 +94,7 @@ def complete_appointment(patient_id):
 
     if not log:
         return jsonify({"error": "No active log found for today"}), 404
-
-    # --- Complete appointment ---
+   
     log.end_time = datetime.utcnow()
     log.status = "completed"
     db.session.commit()

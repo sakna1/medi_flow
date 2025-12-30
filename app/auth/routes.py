@@ -22,13 +22,17 @@ def login():
             (User.username == identifier) | (User.email == identifier)
         ).first()
 
-        if user and user.check_password(password):
-            # ✅ Successful login
+        if user and user.check_password(password):            
             login_user(user)
-            session["login_type"] = "user"
+
+            # set login_type based on role
+            if user.role.lower() == "patient":
+                session["login_type"] = "patient"
+            else:
+                session["login_type"] = "user"
+
             return redirect(url_for(f"{user.role.lower()}.dashboard"))
-        else:
-            # ❌ Invalid credentials
+        else:            
             flash("Invalid username or password.", "error")
             return redirect(url_for('auth.login'))
 
@@ -37,9 +41,15 @@ def login():
 @auth.route('/logout')
 @login_required
 def logout():
+    login_type = session.get("login_type")
     logout_user()
-    session.pop("login_type", None) 
-    return redirect(url_for('auth.login'))
+    session.pop("login_type", None)
+
+    if login_type == "patient":
+        return redirect(url_for('patient.user_login'))
+    else:
+        return redirect(url_for('auth.login'))
+
 
 @auth.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():

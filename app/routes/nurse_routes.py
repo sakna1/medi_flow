@@ -51,7 +51,7 @@ def update_doctor_room_counts():
 def log_scan():
     """Handles nurse QR scan, patient log creation, AI reorder, and wait time prediction."""
     try:
-        data = request.get_json()
+        data = request.get_json() 
         raw_qr = str(data.get("qr_data", "")).strip()
         print(f"DEBUG: Received RAW QR Data: [{raw_qr}]")
 
@@ -93,16 +93,14 @@ def log_scan():
         db.session.commit()
 
         print("✅ Patient scanned successfully. Calling AI reorder...")
-
-        # --- 1️⃣ AI Queue Reorder ---
+        
         ai_response = call_gemini_for_queue(patient_id)
 
         # Validate AI output
         if not isinstance(ai_response, list) or not ai_response:
             print("⚠️ Invalid AI response:", ai_response)
             return jsonify({"error": "Invalid AI response from model"}), 500
-
-        # --- 2️⃣ Update Database from AI Output ---
+       
         for record in ai_response:
             log = PatientLog.query.filter_by(patient_id=record["patient_id"])\
                 .order_by(PatientLog.id.desc()).first()
@@ -114,11 +112,9 @@ def log_scan():
 
         db.session.flush()
         print("✅ Queue numbers updated from AI output.")
-
-        # --- 3️⃣ Update Doctor Log counts (today only) ---
+       
         update_doctor_room_counts()
-
-        # --- 4️⃣ Predict Estimated Wait Time ---
+       
         disease_id = new_log.disease_id or 1
         queue_length = PatientLog.query.filter(
             PatientLog.room_no == new_log.room_no,
@@ -126,7 +122,8 @@ def log_scan():
             db.func.date(PatientLog.scan_time) == today
         ).count()
         doctor_count = DoctorLog.query.filter_by(room_no=new_log.room_no, log_date=today).count()
-        disease_est_time = 10  # placeholder, can fetch from DiseaseDesc table
+        disease = DiseaseDesc.query.get(disease_id)
+        disease_est_time = disease.est_time if disease and disease.est_time else 10 
 
         est_time = predict_wait_time(
             age=calculate_age(patient.dob),
@@ -164,9 +161,7 @@ def log_training_data(patient, new_log):
     from datetime import date
 
     try:
-        csv_path = os.path.join(os.getcwd(), "patient_log.csv")
-
-        # --- Compute derived values ---
+        csv_path = os.path.join(os.getcwd(), "patient_log.csv")        
         queue_length = PatientLog.query.filter(
             PatientLog.room_no == new_log.room_no,
             PatientLog.status == 'waiting',
@@ -177,18 +172,17 @@ def log_training_data(patient, new_log):
             room_no=new_log.room_no, log_date=date.today()
         ).count()
 
-        disease_est_time = 10  # static placeholder (you can improve later)
+        disease_est_time = 10  
 
-        # --- Collect log data matching model features ---
         log_data = [
-            calculate_age(patient.dob),         # age
-            new_log.disease_id or 1,            # disease_id
-            queue_length,                       # queue_length
-            disease_est_time,                   # disease_est_time
-            1 if patient.treatment_status == "Active" else 0,  # numeric status
-            available_doctors,                  # available_doctors
-            new_log.estimated_wait_time or "",  # predicted wait time
-            new_log.scan_time.isoformat()       # timestamp
+            calculate_age(patient.dob),         
+            new_log.disease_id or 1,            
+            queue_length,                      
+            disease_est_time,                   
+            1 if patient.treatment_status == "Active" else 0,  
+            available_doctors,                 
+            new_log.estimated_wait_time or "",  
+            new_log.scan_time.isoformat()       
         ]
 
         header = [
@@ -196,8 +190,7 @@ def log_training_data(patient, new_log):
             "treatment_status", "available_doctors",
             "predicted_wait_time", "scan_time"
         ]
-
-        # --- Write or append to file ---
+       
         file_exists = os.path.isfile(csv_path)
         with open(csv_path, mode="a", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)

@@ -1,5 +1,3 @@
-# File: app/gemini_ai.py
-
 import google.generativeai as genai
 import os
 from app import db
@@ -34,8 +32,7 @@ def call_gemini_for_queue(new_patient_id):
     new_patient = Patient.query.get(new_patient_id)
     if not new_patient:
         return {"error": f"Patient with ID {new_patient_id} not found."}
-
-    # --- Collect all currently waiting/assigned logs ---
+   
     waiting_logs = PatientLog.query.filter(
         PatientLog.status.in_(["waiting", "assigned"]),
         db.func.date(PatientLog.scan_time) == today
@@ -77,9 +74,7 @@ def call_gemini_for_queue(new_patient_id):
             "doctor_id": log.doctor_id,
             "patients_per_room": log.patients_per_room or 0,
             "total_estimated_time": room_loads.get(log.room_no, 0)
-        })
-
-    # --- AI Prompt ---
+        })   
     prompt = f"""
 You are an AI Queue Manager for a cancer hospital. You will assign the new patient and reorder queues based on the rules below.
 
