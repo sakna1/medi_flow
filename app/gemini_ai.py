@@ -64,7 +64,8 @@ def call_gemini_for_queue(new_patient_id):
             "room_no": log.room_no,
             "doctor_id": log.doctor_id,
             "queue_number": log.queue_number,
-            "disease_time": disease_time
+            "disease_time": disease_time,
+            "scan_time": log.scan_time.isoformat()
         })
 
     # --- Doctor-room info ---
@@ -90,9 +91,12 @@ You are an AI Queue Manager for a cancer hospital. You will assign the new patie
    - Existing patients must remain in their current room and doctor.
 
 2. **Queue Prioritization Within Each Room**
-   - Patients are prioritized by:
+   - Patients are prioritized by: 
      a. **Treatment condition** → "In Progress" patients go first.  
      b. **Age** → if two patients have the same treatment status, those aged 60 or older come first.
+     c. If treatment condition and age priority are equal,
+   the patient with the EARLIER scan_time must be placed first.
+
    - Patients under 60 with “Completed” status come last.
    - Recalculate queue_number starting from 1 within each room.
 
