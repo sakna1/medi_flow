@@ -11,20 +11,23 @@ admin = Blueprint('admin', __name__)
 
 @admin.route('/admin/create_admin', methods=['GET', 'POST'])
 def create_admin_user():
-    if User.query.first() is None:
-        if request.method == 'POST' and request.form['role'] == 'Admin':
+    # Check if first user
+    first_user = User.query.first() is None
+    show_only_admin = first_user  # True if DB empty
+
+    if request.method == 'POST':
+        if show_only_admin and request.form.get('role') == 'admin':
             user = User(
-                username=request.form['username'],
-                email=request.form['email'],
-                first_name=request.form['first_name'],
-                last_name=request.form['last_name'],
+                username=request.form.get('username'),
+                email=request.form.get('email'),
+                first_name=request.form.get('first_name'),
+                last_name=request.form.get('last_name'),
                 gender=request.form.get('gender'),
-                role=request.form['role'],
+                role='admin',
                 phone=request.form.get('phone'),
-                emergency_contact_first_name=request.form.get('emergency_contact_first_name'),
-                emergency_contact_last_name=request.form.get('emergency_contact_last_name'),
+                emergency_contact_name=request.form.get('emergency_contact_name'),
                 emergency_contact_phone=request.form.get('emergency_contact_phone'),
-                date_of_birth=request.form.get('date_of_birth'),  
+                date_of_birth=request.form.get('date_of_birth'),
                 marital_status=request.form.get('marital_status'),
                 address=request.form.get('address'),
                 nic=request.form.get('nic'),
@@ -32,12 +35,12 @@ def create_admin_user():
             user.set_password(request.form['password'])
             db.session.add(user)
             db.session.commit()
-            flash(f"{user.role.capitalize()} admin registered successfully.")
+            flash(f"{user.role.capitalize()} admin registered successfully.", "success")
             return render_template('login.html')
 
-        return render_template('register.html')
-    else:
-        return "Access denied", 403
+        flash("Invalid role selected!", "danger")
+
+    return render_template('register.html', show_only_admin=show_only_admin)
 
 @admin.route('/admin/dashboard')
 @login_required
@@ -49,7 +52,7 @@ def dashboard():
 # @login_required
 def register_user():
     # Only Admins and Nurses can access
-    if current_user.role not in ['Admin', 'Nurse']:
+    if current_user.role not in ['admin', 'nurse']:
         return "Access denied", 403
 
     if request.method == 'POST':
@@ -73,6 +76,7 @@ def register_user():
                 description=request.form.get('disease_description'),
                 blood_type=request.form.get('blood'),
                 treatment_status=request.form.get('treatment_status'),
+                next_appointment_date=request.form.get('appoinmentdate'),
             )
         else:
             user = User(
@@ -138,7 +142,7 @@ def search_user():
         return jsonify(None) 
 
 # 💾 Update User
-@admin.route("/update_user/<int:user_id>", methods=["PATCH"])
+@admin.route("/update_user/<int:user_id>", methods=["POST"])
 def update_user(user_id):
     user = User.query.get(user_id)
     if not user:
@@ -328,7 +332,7 @@ def staff_workload_report():
             func.count(PatientLog.id).label("patients")
         )
         .join(PatientLog, PatientLog.doctor_id == User.id)
-        .filter(User.role == "Doctor")
+        .filter(User.role == "doctor")
     )
 
     # Apply date filter if provided

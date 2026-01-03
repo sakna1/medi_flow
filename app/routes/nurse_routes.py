@@ -1,14 +1,17 @@
 from flask import Blueprint, render_template, jsonify, request,redirect,flash
 from flask_login import login_required
 from flask_login import current_user
-from app.models import PatientLog, Patient ,PatientReport,HospitalNotification
+from app.models import PatientLog, Patient ,PatientReport,HospitalNotification ,DiseaseDesc,DoctorLog,User
 from app import db
 from flask import current_app
 import os
+import re
 from werkzeug.utils import secure_filename
 from flask import url_for, send_from_directory
 from datetime import date ,datetime
 from sqlalchemy import func
+from app.gemini_ai import call_gemini_for_queue , calculate_age
+from app.wait_time_predictor import predict_wait_time
 
 
 nurse = Blueprint('nurse', __name__)
@@ -25,30 +28,181 @@ def editprofile():
     nurse_name = current_user.username 
     return render_template('nurse/editprofile.html',nurse_name=nurse_name)
 
+
+def update_doctor_room_counts():
+    """Recalculate and update how many patients are waiting per doctor's room (for today's date)."""
+    today = date.today()
+    doctor_logs = DoctorLog.query.filter_by(log_date=today).all()
+
+    for dlog in doctor_logs:
+        count = PatientLog.query.filter(
+            PatientLog.room_no == dlog.room_no,
+            PatientLog.status.in_(["waiting", "assigned"]),
+            db.func.date(PatientLog.scan_time) == today
+        ).count()
+        dlog.patients_per_room = count
+
+    db.session.commit()
+    print("✅ DoctorLog patient counts updated for today.")
+
+
 @nurse.route('/nurse/log_scan', methods=['POST'])
 @login_required
 def log_scan():
-    if current_user.role.lower() != 'nurse':
-        return jsonify({'message': 'Unauthorized'}), 403
+    """Handles nurse QR scan, patient log creation, AI reorder, and wait time prediction."""
+    try:
+        data = request.get_json() 
+        raw_qr = str(data.get("qr_data", "")).strip()
+        print(f"DEBUG: Received RAW QR Data: [{raw_qr}]")
 
-    data = request.get_json()
-    patient_code = data.get('qr_data')
+        # --- Clean QR ---
+        cleaned_id = ''.join(ch for ch in raw_qr if ch.isalnum())
+        if not cleaned_id.isdigit():
+            return jsonify({"error": "Invalid QR code format"}), 400
 
-    patient = Patient.query.filter_by(username=patient_code).first()
-    if not patient:
-        return jsonify({'message': 'Invalid patient code'}), 400
+        patient_id = int(cleaned_id)
+        patient = Patient.query.get(patient_id)
+        if not patient:
+            return jsonify({"error": f"Patient {patient_id} not found"}), 404
 
-    log = PatientLog(patient_id=patient.id, nurse_id=current_user.id)
-    db.session.add(log)
-    db.session.commit()
+        # --- Prevent duplicate queue entry for today ---
+        today = date.today()
+        if not patient.next_appointment_date or patient.next_appointment_date != today:
+            return jsonify({
+        "message": f"Patient {patient_id} has no appointment scheduled for today"
+        }), 400
 
-    new_patient = {
-        "patient_id": patient.id,         
-        "disease_id": patient.disease_id,         
-    }
-    return jsonify({
-        'message': 'Scan logged successfully',        
-    })
+        existing_log = PatientLog.query.filter(
+            PatientLog.patient_id == patient_id,
+            PatientLog.status.in_(["waiting", "assigned"]),
+            db.func.date(PatientLog.scan_time) == today
+        ).first()
+
+        if existing_log:
+            return jsonify({"message": f"Patient {patient_id} is already queued for today"}), 400
+
+        # --- Create new log ---
+        new_log = PatientLog(
+            patient_id=patient_id,
+            nurse_id=current_user.id,
+            scan_time=datetime.now(),
+            status="waiting",  
+            disease_id =patient.disease_id,          
+        )
+        db.session.add(new_log)
+        db.session.commit()
+
+        print("✅ Patient scanned successfully. Calling AI reorder...")
+        
+        ai_response = call_gemini_for_queue(patient_id)
+
+        # Validate AI output
+        if not isinstance(ai_response, list) or not ai_response:
+            print("⚠️ Invalid AI response:", ai_response)
+            return jsonify({"error": "Invalid AI response from model"}), 500
+       
+        for record in ai_response:
+            log = PatientLog.query.filter_by(patient_id=record["patient_id"])\
+                .order_by(PatientLog.id.desc()).first()
+            if log:
+                log.room_no = record.get("room_no")
+                log.doctor_id = record.get("doctor_id")
+                log.queue_number = record.get("queue_number")
+                log.status = "assigned"
+
+        db.session.flush()
+        print("✅ Queue numbers updated from AI output.")
+       
+        update_doctor_room_counts()
+       
+        disease_id = new_log.disease_id or 1
+        queue_length = PatientLog.query.filter(
+            PatientLog.room_no == new_log.room_no,
+            PatientLog.status == 'waiting',
+            db.func.date(PatientLog.scan_time) == today
+        ).count()
+        doctor_count = DoctorLog.query.filter_by(room_no=new_log.room_no, log_date=today).count()
+        disease = DiseaseDesc.query.get(disease_id)
+        disease_est_time = disease.est_time if disease and disease.est_time else 10 
+
+        est_time = predict_wait_time(
+            age=calculate_age(patient.dob),
+            disease_id=disease_id,
+            queue_length=queue_length,
+            disease_est_time=disease_est_time,
+            treatment_status=patient.treatment_status,
+            available_doctors=doctor_count
+        )
+
+        new_log.estimated_wait_time = est_time
+        db.session.commit()
+
+        print(f"✅ Wait time predicted successfully: {est_time} mins")
+
+        log_training_data(patient, new_log)
+
+        return jsonify({
+            "message": f"Patient {patient_id} logged successfully",
+            "room_no": new_log.room_no,
+            "queue_number": new_log.queue_number,
+            "estimated_wait_time": est_time
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error in log_scan: {e}")
+        return jsonify({"error": "Internal Server Error"}), 500
+
+
+def log_training_data(patient, new_log):
+    """Append scan + context data to ai_training_data.csv for AI model updates."""
+    import csv
+    import os
+    from datetime import date
+
+    try:
+        csv_path = os.path.join(os.getcwd(), "patient_log.csv")        
+        queue_length = PatientLog.query.filter(
+            PatientLog.room_no == new_log.room_no,
+            PatientLog.status == 'waiting',
+            db.func.date(PatientLog.scan_time) == date.today()
+        ).count()
+
+        available_doctors = DoctorLog.query.filter_by(
+            room_no=new_log.room_no, log_date=date.today()
+        ).count()
+
+        disease_est_time = 10  
+
+        log_data = [
+            calculate_age(patient.dob),         
+            new_log.disease_id or 1,            
+            queue_length,                      
+            disease_est_time,                   
+            1 if patient.treatment_status == "Active" else 0,  
+            available_doctors,                 
+            new_log.estimated_wait_time or "",  
+            new_log.scan_time.isoformat()       
+        ]
+
+        header = [
+            "age", "disease_id", "queue_length", "disease_est_time",
+            "treatment_status", "available_doctors",
+            "predicted_wait_time", "scan_time"
+        ]
+       
+        file_exists = os.path.isfile(csv_path)
+        with open(csv_path, mode="a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            if not file_exists:
+                writer.writerow(header)
+            writer.writerow(log_data)
+
+        print(f"✅ AI training data appended to {csv_path}")
+
+    except Exception as e:
+        print(f"⚠️ Failed to log AI training data: {e}")
+
 
 @nurse.route("/upload_report/<int:patient_id>", methods=["POST"])
 @login_required
@@ -225,6 +379,41 @@ def create_notification():
 
     return render_template('create_notification.html')
 
+@nurse.route('/nurse/register', methods=['GET', 'POST'])
+#@login_required
+def register_patient():
+    if current_user.role != 'Nurse':
+        return "Access denied", 403
+
+    if request.method == 'POST':
+        user = Patient(
+            username=request.form.get('username'),
+            email=request.form.get('email'),
+            first_name=request.form.get('first_name'),
+            last_name=request.form.get('last_name'),
+            gender=request.form.get('gender'),
+            phone=request.form.get('phone'),
+            emergency_contact_name=request.form.get('emergency_contact_name'),
+            emergency_phone=request.form.get('emergency_contact_phone'),
+            dob=request.form.get('date_of_birth'),
+            marital_status=request.form.get('marital_status'),
+            address=request.form.get('address'),
+            nic=request.form.get('nic'),
+            disease_id=request.form.get('disease'),
+            description=request.form.get('disease_description'),
+            blood_type=request.form.get('blood'),
+            treatment_status=request.form.get('treatment_status'),
+            next_appointment_date=request.form.get('appoinmentdate'),
+        )
+
+        user.set_password(request.form.get('password'))
+
+        db.session.add(user)
+        db.session.commit()
+        flash("Patient registered successfully.")
+        return redirect(url_for('nurse.dashboard'))
+
+    return render_template('register.html')
     
 
   

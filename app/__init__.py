@@ -61,5 +61,7 @@ def load_user(user_id):
         return Patient.query.get(int(user_id))
     else:
         return User.query.get(int(user_id))
+    
+login_manager.login_view = 'patient.user_login'    
    
    

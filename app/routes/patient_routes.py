@@ -4,9 +4,10 @@ from app.models import Patient , PatientLog , User ,DiseaseDesc,HospitalNotifica
 import qrcode
 import io
 from zoneinfo import ZoneInfo
-from datetime import datetime, date, timezone 
-from sqlalchemy import cast, Date
+from datetime import datetime, date, timezone ,time ,timedelta
+from sqlalchemy import cast, Date ,func,text
 from app import db
+import pytz
 import pytz
 from flask_login import UserMixin
 from sqlalchemy import or_
@@ -62,7 +63,7 @@ def notification():
 @login_required
 def qr_code():
     login_patient_id = Patient.query.filter_by(id=current_user.id).first()
-    qr_data = login_patient_id.username
+    qr_data = str(login_patient_id.id)
     # Generate QR code
     qr = qrcode.QRCode(
         version=1,
@@ -171,39 +172,6 @@ def visit_history_api(patient_id):
 
     return jsonify({"logs": logs_data, "today": date.today().isoformat()})
 
-@patient.route("/save-note", methods=["POST"])
-def save_note():
-    data = request.get_json()
-    log_id = data.get("log_id")
-    notes = data.get("notes")
-
-    if not log_id:
-        return jsonify({"message": "Missing log_id"}), 400
-
-    log = PatientLog.query.get(log_id)
-    if not log:
-        return jsonify({"message": "Log not found"}), 404
-
-    log.notes = notes
-    # mark appointment as closed
-    log.end_time = datetime.now(timezone.utc) 
-    db.session.commit()
-
-    colombo_tz = pytz.timezone("Asia/Colombo")
-    end_local = log.end_time.astimezone(colombo_tz).isoformat() if log.end_time else None
-
-    return jsonify({
-        "message": "Notes updated successfully!",
-        "log": {
-            "id": log.id,
-            "scan_time": log.scan_time.isoformat() if log.scan_time else None,
-            "end_time_utc": log.end_time.isoformat() if log.end_time else None,
-            "end_time": end_local,
-            "doctor_name": f"{log.doctor.first_name} {log.doctor.last_name}" if log.doctor else None,
-            "notes": log.notes,
-            "room_no": log.room_no
-        }
-    })
         
 @patient.route('/dashboard/today-appointment')
 @login_required
@@ -328,3 +296,70 @@ def view_notifications():
     ).order_by(HospitalNotification.notification_date.desc()).all()
 
     return render_template('patient/notification.html', notifications=notifications, user=current_user.username)
+
+
+@patient.route('/get-waiting-time', methods=['GET'])
+@login_required
+def get_waiting_time():
+
+    colombo_tz = pytz.timezone("Asia/Colombo")
+    now_colombo = datetime.now(colombo_tz)
+
+    start_of_day = now_colombo.replace(hour=0, minute=0, second=0, microsecond=0)
+    end_of_day = start_of_day + timedelta(days=1)
+    start_utc = start_of_day.astimezone(pytz.UTC)
+    end_utc = end_of_day.astimezone(pytz.UTC)
+
+    # Get current active log (waiting or assigned)
+    current_log = (
+        PatientLog.query
+        .filter(
+            PatientLog.patient_id == current_user.id,
+            PatientLog.scan_time >= start_utc,
+            PatientLog.scan_time < end_utc,
+            func.lower(PatientLog.status).in_(["waiting", "assigned"])
+        )
+        .order_by(PatientLog.id.desc())
+        .first()
+    )
+
+    if not current_log:
+        return jsonify({
+            "waiting_time": None,
+            "message": "No active queue record found for today."
+        })
+
+    # Run SQL query to calculate total wait before current patient
+    sql = text("""
+        SELECT COALESCE(SUM(p2.estimated_wait_time), 0) AS total_wait_before
+        FROM patient_log p2
+        WHERE p2.room_no = :room_no
+          AND p2.scan_time::date = :today
+          AND p2.queue_number < :queue_number
+          AND LOWER(p2.status) IN ('waiting', 'assigned')
+    """)
+
+    result = db.session.execute(sql, {
+        "room_no": current_log.room_no,
+        "today": now_colombo.date(),
+        "queue_number": current_log.queue_number
+    }).fetchone()
+
+    total_wait_time = result.total_wait_before if result else 0
+
+    # Create friendly message
+    if total_wait_time == 0:
+        message = "You are next to meet the doctor!"
+    else:
+        message = f"Estimated waiting time before your turn: {total_wait_time} minutes."
+
+    return jsonify({
+        "patient_id": current_user.id,
+        "room_no": current_log.room_no,
+        "queue_number": current_log.queue_number,
+        "estimated_wait_time": current_log.estimated_wait_time,
+        "waiting_time": total_wait_time,
+        "message": message
+    })
+
+

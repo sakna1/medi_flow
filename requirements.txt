@@ -10,3 +10,8 @@ sqlalchemy-utils
 qrcode 
 pytz 
 Pillow
+google-generativeai
+joblib
+numpy
+scikit-learn
+pandas
