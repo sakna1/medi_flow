@@ -403,7 +403,7 @@ def register_patient():
             description=request.form.get('disease_description'),
             blood_type=request.form.get('blood'),
             treatment_status=request.form.get('treatment_status'),
-            next_appointment_date=request.form.get('appoinment_date'),
+            next_appointment_date=request.form.get('appointment_date'),
         )
 
         user.set_password(request.form.get('password'))
