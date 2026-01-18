@@ -15,3 +15,4 @@ joblib
 numpy
 scikit-learn
 pandas
+selenium
