@@ -1,5 +1,5 @@
 import unittest
-from performance_core import clean_qr, validate_patient_for_today, detect_duplicate_entry, calculate_wait_time
+from tests.performance_core import clean_qr, validate_patient_for_today, detect_duplicate_entry, calculate_wait_time
 from datetime import date
 
 class TestPerformanceCore(unittest.TestCase):

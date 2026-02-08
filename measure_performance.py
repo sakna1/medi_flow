@@ -1,5 +1,5 @@
 import time
-from performance_core import clean_qr, detect_duplicate_entry, calculate_wait_time, validate_patient_for_today
+from tests.performance_core import clean_qr, detect_duplicate_entry, calculate_wait_time, validate_patient_for_today
 from datetime import date
 
 # Dummy data for testing

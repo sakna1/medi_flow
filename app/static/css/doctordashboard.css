@@ -606,7 +606,24 @@ button {
 button:hover {
   background-color: #0056b3;
 }
+.analytics.section{
 
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+  
+}
+.chart-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 24px;
+  width: 450px;
+  min-width: 200px;
+  flex:1;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
 
 
 
